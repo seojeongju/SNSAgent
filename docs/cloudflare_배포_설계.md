@@ -39,8 +39,8 @@ Pages에 익숙한 흐름을 기준으로 합니다. (Git 연동 / `wrangler pag
 ```
 cloudflare/
 ├── public/                 # Build output (= pages_build_output_dir)
-├── functions/api/          # /api/health, /api/chat, /api/upload, /api/assets
-├── migrations/0001_init.sql
+├── functions/api/          # generate, accounts, publish, oauth, upload, ...
+├── migrations/0001_init.sql … 0003_publish.sql
 └── wrangler.jsonc
 ```
 

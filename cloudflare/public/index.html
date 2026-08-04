@@ -361,6 +361,59 @@
       50% { transform: translateY(-10px); }
     }
 
+    .account-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.65rem;
+    }
+    .account-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.75rem 0.85rem;
+      background: rgba(255,252,248,0.55);
+    }
+    .account-card .name { font-weight: 600; font-size: 0.92rem; }
+    .account-card .meta { margin-top: 0.2rem; }
+    .account-card .row {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-top: 0.55rem;
+    }
+    .btn-sm {
+      font-size: 0.78rem;
+      padding: 0.38rem 0.65rem;
+      border-radius: 9px;
+    }
+    .dot {
+      display: inline-block;
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      margin-right: 0.3rem;
+      vertical-align: middle;
+    }
+    .dot.on { background: var(--ok); }
+    .dot.off { background: #c4bbb0; }
+    .publish-out {
+      margin-top: 0.85rem;
+      padding: 0.85rem;
+      border-radius: 12px;
+      border: 1px dashed var(--line);
+      background: rgba(15, 118, 110, 0.04);
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+    }
+    .job-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.65rem 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.9rem;
+    }
+    .job-item:last-child { border-bottom: 0; }
+
     @media (max-width: 860px) {
       .hero {
         grid-template-columns: 1fr;
@@ -371,6 +424,7 @@
       .hero-visual { order: -1; }
       .phone { width: min(240px, 68vw); }
       .grid { grid-template-columns: 1fr; }
+      .account-grid { grid-template-columns: 1fr; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -398,7 +452,7 @@
         </p>
         <div class="cta-row">
           <a class="btn btn-primary" href="#studio">콘텐츠 만들기</a>
-          <a class="btn btn-secondary" href="#history-section">최근 이력 보기</a>
+          <a class="btn btn-secondary" href="#publish">게시 연동</a>
         </div>
       </div>
 
@@ -475,6 +529,84 @@
       </div>
     </section>
 
+    <section class="section" id="publish" style="padding-top:0;">
+      <div class="section-head">
+        <div>
+          <h2>게시 연동</h2>
+          <p>계정을 연결하고, 생성한 캡션과 영상으로 플랫폼에 게시합니다.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3 style="margin:0 0 0.75rem;font-family:var(--font-display);font-size:1.05rem;">연결된 계정</h3>
+        <div id="accountList" class="account-grid">
+          <div class="meta">불러오는 중…</div>
+        </div>
+        <details style="margin-top:1rem;">
+          <summary>토큰 직접 등록 (Meta 등)</summary>
+          <div class="grid" style="margin-top:0.75rem;">
+            <div>
+              <label for="manualPlatform">플랫폼</label>
+              <select id="manualPlatform">
+                <option value="instagram_reels">인스타그램 릴스</option>
+                <option value="facebook">페이스북</option>
+                <option value="youtube_shorts">유튜브 쇼츠</option>
+                <option value="tiktok">틱톡</option>
+              </select>
+            </div>
+            <div>
+              <label for="manualAccountId">계정/페이지 ID</label>
+              <input id="manualAccountId" placeholder="IG User ID 또는 Page ID" />
+            </div>
+          </div>
+          <label for="manualToken">Access Token</label>
+          <input id="manualToken" placeholder="장기 액세스 토큰" />
+          <label for="manualName">표시 이름 (선택)</label>
+          <input id="manualName" placeholder="내 브랜드 페이지" />
+          <div class="actions">
+            <button class="btn btn-secondary btn-sm" id="saveManualAccount" type="button">계정 저장</button>
+          </div>
+        </details>
+      </div>
+
+      <div class="panel">
+        <h3 style="margin:0 0 0.75rem;font-family:var(--font-display);font-size:1.05rem;">게시하기</h3>
+        <div class="grid">
+          <div>
+            <label for="publishPlatform">게시 플랫폼</label>
+            <select id="publishPlatform">
+              <option value="instagram_reels">인스타그램 릴스</option>
+              <option value="youtube_shorts">유튜브 쇼츠</option>
+              <option value="tiktok">틱톡</option>
+              <option value="facebook">페이스북</option>
+            </select>
+          </div>
+          <div>
+            <label for="publishGenId">생성 ID (자동)</label>
+            <input id="publishGenId" readonly placeholder="콘텐츠 생성 후 자동 입력" />
+          </div>
+        </div>
+        <label for="publishMediaUrl">영상 URL (공개 접근 가능)</label>
+        <input id="publishMediaUrl" placeholder="https://… 또는 아래 업로드 후 자동 입력" />
+        <label for="publishFile">영상 업로드 (R2)</label>
+        <input id="publishFile" type="file" accept="video/*" />
+        <label for="publishCaption">캡션 (비우면 생성 결과에서 가져옴)</label>
+        <textarea id="publishCaption" placeholder="캡션·해시태그"></textarea>
+        <div class="actions">
+          <button class="btn btn-primary" id="doPublish" type="button">게시 요청</button>
+          <button class="btn btn-secondary" id="doManualPack" type="button">수동 게시 패키지</button>
+          <button class="btn btn-secondary" id="refreshJobs" type="button">게시 이력</button>
+        </div>
+        <div id="publishStatus" class="status"></div>
+        <div id="publishOut" class="publish-out" hidden></div>
+      </div>
+
+      <div class="panel">
+        <h3 style="margin:0 0 0.5rem;font-family:var(--font-display);font-size:1.05rem;">최근 게시 작업</h3>
+        <div id="jobsList" class="meta">아직 없음</div>
+      </div>
+    </section>
+
     <section class="section" id="history-section" style="padding-top:0;">
       <div class="section-head">
         <div>
@@ -506,6 +638,11 @@
     const resultMeta = document.getElementById("resultMeta");
     const resultJson = document.getElementById("resultJson");
     const historyEl = document.getElementById("historyList");
+    const accountList = document.getElementById("accountList");
+    const publishStatus = document.getElementById("publishStatus");
+    const publishOut = document.getElementById("publishOut");
+    const jobsList = document.getElementById("jobsList");
+    let lastGeneration = null;
 
     const platformLabel = {
       instagram_reels: "인스타 릴스",
@@ -515,9 +652,21 @@
       all: "전체",
     };
 
+    const oauthSlug = {
+      instagram_reels: "instagram",
+      facebook: "facebook",
+      youtube_shorts: "youtube",
+      tiktok: "tiktok",
+    };
+
     function setStatus(msg, cls = "") {
       statusEl.textContent = msg;
       statusEl.className = "status " + cls;
+    }
+
+    function setPublishStatus(msg, cls = "") {
+      publishStatus.textContent = msg;
+      publishStatus.className = "status " + cls;
     }
 
     function esc(s) {
@@ -587,11 +736,19 @@
       return `<pre>${esc(JSON.stringify(result, null, 2))}</pre>`;
     }
 
+    function syncPublishForm(payload) {
+      lastGeneration = payload;
+      document.getElementById("publishGenId").value = payload.generation_id || "";
+      const p = payload.platform === "all" ? "instagram_reels" : payload.platform;
+      if (p && p !== "all") document.getElementById("publishPlatform").value = p;
+    }
+
     function showResult(payload) {
       resultCard.hidden = false;
       resultMeta.textContent = `${platformLabel[payload.platform] || payload.platform} · ${payload.content_type} · id ${payload.generation_id || "-"}`;
       resultView.innerHTML = renderResult(payload.platform, payload.content_type, payload.result);
       resultJson.textContent = JSON.stringify(payload.result, null, 2);
+      syncPublishForm(payload);
       resultCard.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
@@ -604,6 +761,131 @@
         quotaBadge.textContent = `${q.plan_code.toUpperCase()} · ${q.used}/${q.limit}회`;
       } catch {
         quotaBadge.textContent = "한도 조회 대기";
+      }
+    }
+
+    async function loadAccounts() {
+      try {
+        const res = await fetch(`/api/accounts?user_id=${encodeURIComponent(userId)}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "accounts failed");
+        const byPlatform = Object.fromEntries((data.accounts || []).map((a) => [a.platform, a]));
+        const platforms = ["instagram_reels", "facebook", "youtube_shorts", "tiktok"];
+        accountList.innerHTML = platforms.map((p) => {
+          const a = byPlatform[p];
+          const envHint = data.env_hints?.[p];
+          const connected = Boolean(a?.has_token) || envHint;
+          const name = a?.account_name || (envHint ? "환경 토큰" : "미연결");
+          return `
+            <div class="account-card">
+              <div class="name"><span class="dot ${connected ? "on" : "off"}"></span>${esc(platformLabel[p])}</div>
+              <div class="meta">${esc(name)}${a?.account_id ? " · " + esc(a.account_id) : ""}</div>
+              <div class="row">
+                <button class="btn btn-secondary btn-sm" type="button" data-oauth="${esc(p)}">OAuth 연결</button>
+                ${a ? `<button class="btn btn-secondary btn-sm" type="button" data-disconnect="${esc(p)}">해제</button>` : ""}
+              </div>
+            </div>`;
+        }).join("");
+
+        accountList.querySelectorAll("[data-oauth]").forEach((btn) => {
+          btn.onclick = () => {
+            const p = btn.getAttribute("data-oauth");
+            window.location.href = `/api/oauth/${oauthSlug[p]}?user_id=${encodeURIComponent(userId)}`;
+          };
+        });
+        accountList.querySelectorAll("[data-disconnect]").forEach((btn) => {
+          btn.onclick = async () => {
+            const p = btn.getAttribute("data-disconnect");
+            const res = await fetch(
+              `/api/accounts?user_id=${encodeURIComponent(userId)}&platform=${encodeURIComponent(p)}`,
+              { method: "DELETE" },
+            );
+            const data = await res.json();
+            if (!res.ok) return setPublishStatus(data.error || "해제 실패", "err");
+            setPublishStatus("계정 연결이 해제되었습니다.", "ok");
+            loadAccounts();
+          };
+        });
+      } catch (e) {
+        accountList.innerHTML = `<div class="status err">${esc(e.message || e)}</div>`;
+      }
+    }
+
+    async function loadJobs() {
+      try {
+        const res = await fetch(`/api/publishes?user_id=${encodeURIComponent(userId)}&limit=12`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "jobs failed");
+        const jobs = data.jobs || [];
+        if (!jobs.length) {
+          jobsList.innerHTML = '<div class="meta">아직 게시 작업이 없습니다.</div>';
+          return;
+        }
+        jobsList.innerHTML = jobs.map((j) => `
+          <div class="job-item">
+            <div>
+              <div>${esc(platformLabel[j.platform] || j.platform)} · <strong>${esc(j.status)}</strong></div>
+              <div class="meta">${esc(j.created_at)}${j.error_message ? " · " + esc(j.error_message) : ""}</div>
+            </div>
+            <div class="meta">${j.external_url ? `<a href="${esc(j.external_url)}" target="_blank" rel="noopener">보기</a>` : esc(j.id.slice(0, 8))}</div>
+          </div>
+        `).join("");
+      } catch (e) {
+        jobsList.innerHTML = `<div class="status err">${esc(e.message || e)}</div>`;
+      }
+    }
+
+    async function runPublish(forceManual = false) {
+      const platform = document.getElementById("publishPlatform").value;
+      const generation_id = document.getElementById("publishGenId").value.trim() || undefined;
+      const media_url = document.getElementById("publishMediaUrl").value.trim() || undefined;
+      const caption = document.getElementById("publishCaption").value.trim() || undefined;
+      if (!media_url) return setPublishStatus("영상 URL을 입력하거나 업로드하세요.", "err");
+
+      setPublishStatus(forceManual ? "수동 패키지 준비 중…" : "게시 요청 중…");
+      publishOut.hidden = true;
+      try {
+        const res = await fetch("/api/publish", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: userId,
+            platform,
+            generation_id,
+            media_url,
+            caption,
+            force_manual: forceManual || undefined,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setPublishStatus(data.message || data.error || "게시 실패", "err");
+          return;
+        }
+        const lines = [
+          `상태: ${data.status}`,
+          data.account_connected ? "계정: 연결됨" : "계정: 미연결 → 수동 패키지",
+          data.external_url ? `게시 URL: ${data.external_url}` : "",
+          data.error_message ? `메시지: ${data.error_message}` : "",
+        ].filter(Boolean);
+
+        if (data.manual_package) {
+          const mp = data.manual_package;
+          lines.push("", "— 수동 게시 패키지 —", `플랫폼: ${mp.platform}`, "");
+          lines.push(...(mp.instructions || []).map((s, i) => `${i + 1}. ${s}`));
+          lines.push("", "캡션:", mp.caption || "");
+          lines.push("", "영상:", mp.media_url || "");
+        }
+
+        publishOut.hidden = false;
+        publishOut.textContent = lines.join("\n");
+        setPublishStatus(
+          data.status === "published" ? "게시 완료" : data.status === "manual_ready" ? "수동 게시 패키지 준비됨" : "처리됨",
+          data.status === "failed" ? "err" : "ok",
+        );
+        await loadJobs();
+      } catch (e) {
+        setPublishStatus(String(e), "err");
       }
     }
 
@@ -694,9 +976,68 @@
       }
     };
 
+    document.getElementById("saveManualAccount").onclick = async () => {
+      const platform = document.getElementById("manualPlatform").value;
+      const access_token = document.getElementById("manualToken").value.trim();
+      const account_id = document.getElementById("manualAccountId").value.trim();
+      const account_name = document.getElementById("manualName").value.trim();
+      if (!access_token) return setPublishStatus("토큰을 입력하세요.", "err");
+      const res = await fetch("/api/accounts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: userId,
+          platform,
+          access_token,
+          account_id: account_id || undefined,
+          account_name: account_name || undefined,
+          metadata:
+            platform === "instagram_reels" && account_id
+              ? { ig_user_id: account_id }
+              : platform === "facebook" && account_id
+                ? { page_id: account_id }
+                : undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) return setPublishStatus(data.error || "저장 실패", "err");
+      setPublishStatus("계정 토큰이 저장되었습니다.", "ok");
+      document.getElementById("manualToken").value = "";
+      loadAccounts();
+    };
+
+    document.getElementById("publishFile").onchange = async (ev) => {
+      const file = ev.target.files?.[0];
+      if (!file) return;
+      setPublishStatus("영상 업로드 중…");
+      try {
+        const q = new URLSearchParams({
+          user_id: userId,
+          session_id: "publish",
+          filename: file.name.replace(/[^\w.\-]+/g, "_"),
+        });
+        const res = await fetch(`/api/upload?${q}`, {
+          method: "POST",
+          headers: { "Content-Type": file.type || "video/mp4" },
+          body: file,
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "upload failed");
+        document.getElementById("publishMediaUrl").value = data.media_url;
+        setPublishStatus("업로드 완료. 게시할 수 있습니다.", "ok");
+      } catch (e) {
+        setPublishStatus(String(e), "err");
+      }
+    };
+
+    document.getElementById("doPublish").onclick = () => runPublish(false);
+    document.getElementById("doManualPack").onclick = () => runPublish(true);
+    document.getElementById("refreshJobs").onclick = loadJobs;
     document.getElementById("refreshHistory").onclick = loadHistory;
     loadQuota();
     loadHistory();
+    loadAccounts();
+    loadJobs();
   </script>
 </body>
 </html>

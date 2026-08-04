@@ -136,7 +136,7 @@ flowchart LR
 
 ---
 
-### Phase 5 — 플랫폼 게시·연동 (2~4주)
+### Phase 5 — 플랫폼 게시·연동 (2~4주) ← **진행 중**
 
 **목적:** “생성”을 넘어 “배포”로 ARPU 상승
 
@@ -149,9 +149,14 @@ flowchart LR
 
 구현 항목:
 
-- [ ] OAuth 연결 (`platform_accounts` 테이블, 토큰은 암호화 저장)
-- [ ] 게시 예약 / 즉시 게시
+- [x] D1 `platform_accounts` / `publish_jobs` (migration 0003)
+- [x] OAuth 시작·콜백 (`/api/oauth/*`) + 토큰 직접 등록 (`/api/accounts`)
+- [x] `POST /api/publish` — IG/FB Graph 자동 게시, YT/TikTok 수동 패키지
+- [x] UI 게시 연동 패널 (업로드·계정·작업 이력)
+- [ ] 토큰 암호화 at-rest
+- [ ] 게시 예약
 - [ ] 게시 실패 재시도·로그
+- [ ] YouTube/TikTok 자동 업로드 어댑터 완성
 - [ ] Business 플랜에만 다중 계정
 
 **완료 기준:** 최소 1개 플랫폼에서 Pro 사용자가 생성된 캡션으로 게시 성공

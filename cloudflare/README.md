@@ -7,13 +7,19 @@ cloudflare/
 ├── public/                 # Pages 정적 산출물 (UI)
 ├── functions/              # Pages Functions (API)
 │   ├── _shared.ts
+│   ├── _billing.ts
+│   ├── _content.ts
+│   ├── _publish.ts
 │   └── api/
-│       ├── health.ts       # GET /api/health
-│       ├── chat.ts         # GET|POST /api/chat  → D1
-│       ├── upload.ts       # POST /api/upload    → R2 + D1
-│       └── assets/[[path]].ts  # GET /api/assets/* → R2
-├── migrations/             # D1 스키마
-└── wrangler.jsonc          # pages_build_output_dir + D1/R2 bindings
+│       ├── health.ts
+│       ├── generate.ts / generations.ts / generation/[id].ts
+│       ├── accounts.ts     # 플랫폼 계정
+│       ├── publish.ts / publishes.ts / publish/[id].ts
+│       ├── oauth/[platform].ts / oauth/callback.ts
+│       ├── upload.ts / assets/[[path]].ts
+│       └── chat.ts / me.ts
+├── migrations/             # D1 스키마 (0001~0003)
+└── wrangler.jsonc
 ```
 
 ## 배포 (익숙한 Pages 흐름)
@@ -31,17 +37,16 @@ npm run r2:create
 npm run db:migrate:local
 npm run db:migrate:remote
 
-# 3) 대시보드에서 프로젝트 Bindings 확인 (또는 wrangler.jsonc가 source of truth)
+# 3) 대시보드에서 프로젝트 Bindings 확인
 #    DB → D1, MEDIA → R2
-#    Secrets: OPENAI_API_KEY, TIKHUB_API_KEY, ...
+#    Secrets: OPENAI_API_KEY, META_*, GOOGLE_*, TIKTOK_*
 
 # 4) 로컬
 npm run dev
 
 # 5) 배포
 npm run deploy
-# 또는 Git 연동 Pages: Root directory = cloudflare, Build output = public
-# Functions는 functions/ 자동 인식
+# 또는 Git 연동: Root = cloudflare, Build output = public
 ```
 
 ## Git 연동 Pages 설정 예시
@@ -60,11 +65,29 @@ Bindings (Production / Preview 각각):
 
 ## API
 
-| Method | Path | 저장소 |
-|--------|------|--------|
-| GET | `/api/health` | — |
-| GET/POST | `/api/chat` | D1 |
-| POST | `/api/upload` | R2 + D1 meta |
-| GET | `/api/assets/*` | R2 |
+| Method | Path | 설명 |
+|--------|------|------|
+| GET | `/api/health` | 헬스 |
+| POST | `/api/generate` | 한국어 대본/캡션 생성 |
+| GET | `/api/generations` | 생성 이력 |
+| GET/POST/DELETE | `/api/accounts` | 플랫폼 계정 연결 |
+| GET | `/api/oauth/:platform` | OAuth 시작 (instagram/facebook/youtube/tiktok) |
+| GET | `/api/oauth/callback` | OAuth 콜백 |
+| POST | `/api/publish` | 게시 (Meta 자동 / 그 외 수동 패키지) |
+| GET | `/api/publishes` | 게시 작업 목록 |
+| POST | `/api/upload` | 영상 업로드 → R2 |
+| GET | `/api/assets/*` | R2 공개 조회 |
 
-에이전트(Python Reasoning/Action) 실행은 아직 stub입니다. Pages Function에 오케스트레이션을 넣거나, Service Binding으로 별도 Worker/Container에 연결하면 됩니다.
+## 게시 연동 Secrets
+
+| Secret | 용도 |
+|--------|------|
+| `META_APP_ID` / `META_APP_SECRET` | Meta OAuth |
+| `META_REDIRECT_URI` | 예: `https://snsagent.pages.dev/api/oauth/callback` |
+| `META_ACCESS_TOKEN` + `META_IG_USER_ID` | (선택) 서비스 레벨 IG 게시 |
+| `META_PAGE_ID` | (선택) 서비스 레벨 Facebook 게시 |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | YouTube OAuth |
+| `TIKTOK_CLIENT_KEY` / `TIKTOK_CLIENT_SECRET` | TikTok OAuth |
+
+토큰 없이도 **수동 게시 패키지**(캡션+영상 URL+안내)는 바로 사용 가능합니다.
+Instagram/Facebook은 토큰+공개 `video_url` 이 있으면 Graph API로 자동 게시합니다.

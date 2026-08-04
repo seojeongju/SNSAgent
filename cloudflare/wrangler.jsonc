@@ -24,5 +24,7 @@
     }
   ]
   // Dashboard > Settings > Bindings / Variables 에서도 동일하게 설정 가능
-  // Secrets: OPENAI_API_KEY, TIKHUB_API_KEY, ...
+  // Secrets: OPENAI_API_KEY, META_APP_ID, META_APP_SECRET, META_ACCESS_TOKEN,
+  //          META_IG_USER_ID, META_PAGE_ID, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
+  //          TIKTOK_CLIENT_KEY, TIKTOK_CLIENT_SECRET, *_REDIRECT_URI
 }

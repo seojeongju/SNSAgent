@@ -30,9 +30,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     .bind(artifactId, userId, sessionId, key, contentType, bytes.byteLength)
     .run();
 
+  const mediaUrl = `${url.origin}/api/assets/${key}`;
   return json({
     artifact_id: artifactId,
     r2_key: key,
+    media_url: mediaUrl,
     size_bytes: bytes.byteLength,
   });
 };
