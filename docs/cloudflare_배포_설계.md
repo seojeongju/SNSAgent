@@ -18,7 +18,7 @@ Pages에 익숙한 흐름을 기준으로 합니다. (Git 연동 / `wrangler pag
     └── functions/api/*      Pages Functions
             │
             ├── D1 (DB)      채팅·워크플로·비용·아티팩트 메타
-            ├── R2 (ASSETS)  업로드·출력·미디어
+            ├── R2 (MEDIA)   업로드·출력·미디어
             └── Secrets      OPENAI_API_KEY, TIKHUB_API_KEY, ...
 ```
 
@@ -56,7 +56,7 @@ cloudflare/
 - `workflows`, `workflow_steps`
 - `api_costs`, `artifacts` (R2 키 메타)
 
-### R2 (`ASSETS`)
+### R2 (`MEDIA`)
 
 | 키 프리픽스 | 용도 |
 |-------------|------|
@@ -75,7 +75,7 @@ cloudflare/
 4. `wrangler d1 migrations apply snsagent-db --remote`
 5. **Settings → Bindings**
    - D1: `DB` → `snsagent-db`
-   - R2: `ASSETS` → `snsagent-assets`
+   - R2: `MEDIA` → `snsagent-assets`
 6. **Settings → Variables and Secrets** — API 키 등록
 7. Git 연동 시 Root = `cloudflare`, Output = `public`
 8. 배포 후 `/api/health` 확인

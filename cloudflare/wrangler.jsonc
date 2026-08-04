@@ -10,7 +10,7 @@
       "binding": "DB",
       "database_name": "snsagent-db",
       // wrangler d1 create snsagent-db 후 ID 교체
-      "database_id": "REPLACE_AFTER_wrangler_d1_create",
+      "database_id": "4fb0ea2a-2046-418a-b63d-5d6cc2edbd87",
       // pages local dev 에 필요
       "preview_database_id": "DB",
       "migrations_dir": "migrations"
@@ -18,7 +18,7 @@
   ],
   "r2_buckets": [
     {
-      "binding": "ASSETS",
+      "binding": "MEDIA",
       "bucket_name": "snsagent-assets",
       "preview_bucket_name": "snsagent-assets"
     }

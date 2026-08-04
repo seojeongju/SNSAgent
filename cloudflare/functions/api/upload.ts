@@ -14,7 +14,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const bytes = await context.request.arrayBuffer();
 
   const key = `uploads/${userId}/${sessionId}/${filename}`;
-  await context.env.ASSETS.put(key, bytes, {
+  await context.env.MEDIA.put(key, bytes, {
     httpMetadata: { contentType },
   });
 

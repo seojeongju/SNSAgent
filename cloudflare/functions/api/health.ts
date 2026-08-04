@@ -8,7 +8,7 @@ export const onRequestGet: PagesFunction<Env> = async () => {
     status: "ok",
     service: "SNSAgent",
     platform: "Cloudflare Pages",
-    storage: { d1: "DB", r2: "ASSETS" },
+    storage: { d1: "DB", r2: "MEDIA" },
   });
 };
 

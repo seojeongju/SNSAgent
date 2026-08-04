@@ -32,7 +32,7 @@ npm run db:migrate:local
 npm run db:migrate:remote
 
 # 3) 대시보드에서 프로젝트 Bindings 확인 (또는 wrangler.jsonc가 source of truth)
-#    DB → D1, ASSETS → R2
+#    DB → D1, MEDIA → R2
 #    Secrets: OPENAI_API_KEY, TIKHUB_API_KEY, ...
 
 # 4) 로컬
@@ -56,7 +56,7 @@ npm run deploy
 Bindings (Production / Preview 각각):
 
 - **D1** variable `DB` → `snsagent-db`
-- **R2** variable `ASSETS` → `snsagent-assets`
+- **R2** variable `MEDIA` → `snsagent-assets`
 
 ## API
 

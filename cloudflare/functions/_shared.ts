@@ -3,7 +3,7 @@
  */
 export interface Env {
   DB: D1Database;
-  ASSETS: R2Bucket;
+  MEDIA: R2Bucket;
   OPENAI_API_KEY?: string;
   TIKHUB_API_KEY?: string;
 }

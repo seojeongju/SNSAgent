@@ -1,4 +1,4 @@
-import { corsHeaders, json, type Env } from "../_shared";
+import { corsHeaders, json, type Env } from "../../_shared";
 
 /**
  * GET /api/assets/[[path]]
@@ -10,7 +10,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
   if (!key) return json({ error: "asset path required" }, 400);
 
-  const object = await context.env.ASSETS.get(key);
+  const object = await context.env.MEDIA.get(key);
   if (!object) return json({ error: "not found" }, 404);
 
   const headers = new Headers(corsHeaders);
