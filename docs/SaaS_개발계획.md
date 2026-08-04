@@ -66,7 +66,7 @@ flowchart LR
 
 ---
 
-### Phase 1 — 콘텐츠 생성 MVP (1~2주) ← **현재 구간**
+### Phase 1 — 콘텐츠 생성 MVP (1~2주) ← **완료**
 
 **목적:** 결제 없이도 “쓸 만한 제품” 검증
 
@@ -82,22 +82,23 @@ flowchart LR
 
 ---
 
-### Phase 2 — 회원가입 / 로그인 (1~2주)
+### Phase 2 — 회원가입 / 로그인 (1~2주) ← **골격 완료**
 
 **목적:** 사용자를 식별하고 구독의 “주인”을 만든다
 
-권장 스택 (Pages에 잘 맞음):
-
-| 옵션 | 장점 | 비고 |
-|------|------|------|
-| **Clerk / Auth.js(Google·이메일)** | 구현 빠름 | 추천 |
-| Cloudflare Access | Zero Trust에 강함 | B2C 구독엔 덜 적합 |
-| 자체 이메일+비밀번호 | 의존성↓ | 보안·메일 부담↑ |
-
 구현 항목:
 
-- [ ] 회원가입 / 로그인 / 로그아웃
-- [ ] 세션·JWT, `user_id`를 Functions에서 검증
+- [x] 이메일 회원가입 / 로그인 / 로그아웃 (`/api/auth/*`)
+- [x] HttpOnly 쿠키 세션 + PBKDF2 (`auth_sessions`, migration 0004)
+- [x] UI 회원·구독 탭
+- [ ] 이메일 인증 / 비밀번호 재설정
+- [ ] 소셜 로그인 (선택)
+
+**완료 기준:** 로그인 사용자가 동일 계정으로 한도·이력 유지
+
+---
+
+### Phase 3 — 사용량 측정 · Free 제한 (1주)
 - [ ] D1 `users`에 email, name, auth_provider, created_at
 - [ ] 기존 `user_demo` → 실사용자로 전환
 - [ ] 보호 API: `/api/generate`, `/api/chat`, `/api/upload` 는 로그인 필수
@@ -120,17 +121,17 @@ flowchart LR
 
 ---
 
-### Phase 4 — 구독 결제 (Stripe) (1~2주)
+### Phase 4 — 구독 결제 (Stripe) (1~2주) ← **골격 완료**
 
 **목적:** 실제 과금
 
-- [ ] Stripe Product/Price (월간·연간)
-- [ ] Checkout Session 생성 API
-- [ ] Customer Portal (카드 변경·해지)
-- [ ] Webhook: `checkout.session.completed`, `customer.subscription.updated/deleted`
-- [ ] D1 `subscriptions` 상태 동기화 (`active`, `past_due`, `canceled`)
-- [ ] Pro/Business 한도 적용
-- [ ] 영수증·플랜 표시 UI
+- [x] Checkout Session API (`/api/billing/checkout`)
+- [x] Customer Portal (`/api/billing/portal`)
+- [x] Webhook → D1 `subscriptions` / `plan_code` 동기화
+- [x] UI Pro 업그레이드 / 구독 관리 버튼
+- [ ] Stripe Dashboard Product/Price 실연동 검증 (`STRIPE_PRICE_PRO`)
+- [ ] Business 티어·연간 결제
+- [ ] 영수증 메일
 
 **완료 기준:** 카드로 Pro 구독 → 한도 상승 → 해지 시 Free 복귀
 

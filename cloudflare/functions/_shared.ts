@@ -23,6 +23,10 @@ export interface Env {
   TIKTOK_CLIENT_SECRET?: string;
   TIKTOK_REDIRECT_URI?: string;
   APP_BASE_URL?: string;
+  /** Stripe */
+  STRIPE_SECRET_KEY?: string;
+  STRIPE_WEBHOOK_SECRET?: string;
+  STRIPE_PRICE_PRO?: string;
 }
 
 export const corsHeaders: HeadersInit = {

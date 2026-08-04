@@ -344,7 +344,7 @@
       grid-template-columns: 1fr 1fr;
       gap: 0.85rem;
     }
-    select, textarea, input[type="text"], input[type="url"], input:not([type]), input[type="file"] {
+    select, textarea, input[type="text"], input[type="url"], input[type="password"], input:not([type]), input[type="file"] {
       width: 100%;
       border: 1px solid var(--line);
       border-radius: 12px;
@@ -600,6 +600,7 @@
         <button class="tab" role="tab" id="tab-studio" aria-controls="view-studio" aria-selected="false" data-tab="studio" type="button">스튜디오</button>
         <button class="tab" role="tab" id="tab-publish" aria-controls="view-publish" aria-selected="false" data-tab="publish" type="button">게시</button>
         <button class="tab" role="tab" id="tab-accounts" aria-controls="view-accounts" aria-selected="false" data-tab="accounts" type="button">계정</button>
+        <button class="tab" role="tab" id="tab-billing" aria-controls="view-billing" aria-selected="false" data-tab="billing" type="button">회원·구독</button>
         <button class="tab" role="tab" id="tab-history" aria-controls="view-history" aria-selected="false" data-tab="history" type="button">이력</button>
       </nav>
     </div>
@@ -803,6 +804,60 @@
         </div>
         <div id="accountStatus" class="status"></div>
       </div>
+      <div class="card">
+        <h3>연동 진단</h3>
+        <div id="diagnosticsBox" class="meta">불러오는 중…</div>
+        <p class="meta" style="margin-top:0.75rem;">상세 절차: 저장소 <code>docs/Meta_연동_가이드.md</code></p>
+      </div>
+    </section>
+
+    <!-- BILLING / AUTH -->
+    <section class="panel-view" id="view-billing" role="tabpanel" aria-labelledby="tab-billing" hidden>
+      <div class="view-head">
+        <div>
+          <h2>회원 · 구독</h2>
+          <p>계정으로 로그인하면 한도와 이력이 기기에 묶이지 않습니다.</p>
+        </div>
+      </div>
+
+      <div class="card" id="authGuestCard">
+        <h3>회원가입 / 로그인</h3>
+        <div class="grid">
+          <div>
+            <label for="authEmail">이메일</label>
+            <input id="authEmail" type="text" autocomplete="email" placeholder="you@example.com" />
+          </div>
+          <div>
+            <label for="authPassword">비밀번호 (8자 이상)</label>
+            <input id="authPassword" type="password" autocomplete="current-password" />
+          </div>
+        </div>
+        <label for="authName">표시 이름 (가입 시)</label>
+        <input id="authName" type="text" placeholder="크리에이터 닉네임" />
+        <div class="actions">
+          <button class="btn btn-primary" id="authSignup" type="button">회원가입</button>
+          <button class="btn btn-secondary" id="authLogin" type="button">로그인</button>
+        </div>
+        <div id="authStatus" class="status"></div>
+      </div>
+
+      <div class="card" id="authUserCard" hidden>
+        <h3>내 계정</h3>
+        <div id="authUserInfo" class="meta"></div>
+        <div class="actions">
+          <button class="btn btn-secondary" id="authLogout" type="button">로그아웃</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>플랜</h3>
+        <div id="planInfo" class="meta">한도 확인 중…</div>
+        <div class="actions">
+          <button class="btn btn-primary" id="upgradePro" type="button">Pro로 업그레이드</button>
+          <button class="btn btn-secondary" id="openPortal" type="button">구독 관리</button>
+        </div>
+        <div id="billingStatus" class="status"></div>
+      </div>
     </section>
 
     <!-- HISTORY -->
@@ -826,13 +881,14 @@
   </div>
 
   <script>
-    const userId = localStorage.getItem("snsagent_user_id") || (() => {
+    const TABS = ["home", "studio", "publish", "accounts", "billing", "history"];
+    let userId = localStorage.getItem("snsagent_user_id") || (() => {
       const id = "user_" + Math.random().toString(36).slice(2, 10);
       localStorage.setItem("snsagent_user_id", id);
       return id;
     })();
+    let authUser = null;
 
-    const TABS = ["home", "studio", "publish", "accounts", "history"];
     const statusEl = document.getElementById("status");
     const quotaBadge = document.getElementById("quotaBadge");
     const resultCard = document.getElementById("resultCard");
@@ -845,7 +901,23 @@
     const publishStatus = document.getElementById("publishStatus");
     const publishOut = document.getElementById("publishOut");
     const jobsList = document.getElementById("jobsList");
+    const diagnosticsBox = document.getElementById("diagnosticsBox");
+    const authStatus = document.getElementById("authStatus");
+    const billingStatus = document.getElementById("billingStatus");
     let lastGeneration = null;
+
+    async function api(url, options = {}) {
+      return fetch(url, {
+        credentials: "include",
+        ...options,
+        headers: {
+          ...(options.body && !(options.body instanceof FormData)
+            ? { "Content-Type": "application/json" }
+            : {}),
+          ...(options.headers || {}),
+        },
+      });
+    }
 
     const platformLabel = {
       instagram_reels: "인스타 릴스",
@@ -885,8 +957,9 @@
         history.replaceState(null, "", "#" + tab);
       }
       if (tab === "history") loadHistory();
-      if (tab === "accounts") loadAccounts();
+      if (tab === "accounts") { loadAccounts(); loadDiagnostics(); }
       if (tab === "publish") loadJobs();
+      if (tab === "billing") loadMe();
     }
 
     function setStatus(msg, cls = "") {
@@ -985,21 +1058,60 @@
       setTab("studio");
     }
 
-    async function loadQuota() {
+    async function loadMe() {
       try {
-        const res = await fetch(`/api/me?user_id=${encodeURIComponent(userId)}`);
+        const res = await api(`/api/me?user_id=${encodeURIComponent(userId)}`);
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "quota failed");
+        if (!res.ok) throw new Error(data.error || "me failed");
         const q = data.quota;
         quotaBadge.textContent = `${q.plan_code.toUpperCase()} · ${q.used}/${q.limit}회`;
+        document.getElementById("planInfo").textContent =
+          `${q.plan_code.toUpperCase()} 플랜 · 이번 달 ${q.used}/${q.limit}회 (남은 ${q.remaining}회)`;
+
+        authUser = data.auth || null;
+        const guestCard = document.getElementById("authGuestCard");
+        const userCard = document.getElementById("authUserCard");
+        if (authUser) {
+          userId = authUser.id;
+          localStorage.setItem("snsagent_user_id", userId);
+          guestCard.hidden = true;
+          userCard.hidden = false;
+          document.getElementById("authUserInfo").textContent =
+            `${authUser.display_name || ""} · ${authUser.email || ""} · ${authUser.plan_code || "free"}`;
+        } else {
+          guestCard.hidden = false;
+          userCard.hidden = true;
+        }
       } catch {
         quotaBadge.textContent = "한도 조회 대기";
       }
     }
 
+    async function loadQuota() {
+      await loadMe();
+    }
+
+    async function loadDiagnostics() {
+      try {
+        const res = await api("/api/diagnostics");
+        const d = await res.json();
+        if (!res.ok) throw new Error(d.error || "diagnostics failed");
+        const flag = (v) => (v ? "연결됨" : "미설정");
+        diagnosticsBox.innerHTML = `
+          <div>OpenAI: <strong>${flag(d.openai)}</strong></div>
+          <div>Meta OAuth: <strong>${flag(d.meta?.oauth)}</strong> · IG서비스토큰: <strong>${flag(d.meta?.service_ig)}</strong> · FB: <strong>${flag(d.meta?.service_fb)}</strong></div>
+          <div>Google/YouTube OAuth: <strong>${flag(d.google?.oauth)}</strong></div>
+          <div>TikTok OAuth: <strong>${flag(d.tiktok?.oauth)}</strong></div>
+          <div>Stripe: <strong>${flag(d.stripe?.configured)}</strong> · Pro Price: <strong>${flag(d.stripe?.price_pro)}</strong></div>
+        `;
+      } catch (e) {
+        diagnosticsBox.textContent = String(e.message || e);
+      }
+    }
+
     async function loadAccounts() {
       try {
-        const res = await fetch(`/api/accounts?user_id=${encodeURIComponent(userId)}`);
+        const res = await api(`/api/accounts?user_id=${encodeURIComponent(userId)}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "accounts failed");
         const byPlatform = Object.fromEntries((data.accounts || []).map((a) => [a.platform, a]));
@@ -1029,7 +1141,7 @@
         accountList.querySelectorAll("[data-disconnect]").forEach((btn) => {
           btn.onclick = async () => {
             const p = btn.getAttribute("data-disconnect");
-            const res = await fetch(
+            const res = await api(
               `/api/accounts?user_id=${encodeURIComponent(userId)}&platform=${encodeURIComponent(p)}`,
               { method: "DELETE" },
             );
@@ -1046,7 +1158,7 @@
 
     async function loadJobs() {
       try {
-        const res = await fetch(`/api/publishes?user_id=${encodeURIComponent(userId)}&limit=12`);
+        const res = await api(`/api/publishes?user_id=${encodeURIComponent(userId)}&limit=12`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "jobs failed");
         const jobs = data.jobs || [];
@@ -1078,9 +1190,8 @@
       setPublishStatus(forceManual ? "수동 패키지 준비 중…" : "게시 요청 중…");
       publishOut.hidden = true;
       try {
-        const res = await fetch("/api/publish", {
+        const res = await api("/api/publish", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             user_id: userId,
             platform,
@@ -1125,7 +1236,7 @@
     async function loadHistory() {
       historyEl.innerHTML = '<div class="meta">불러오는 중…</div>';
       try {
-        const res = await fetch(`/api/generations?user_id=${encodeURIComponent(userId)}&limit=15`);
+        const res = await api(`/api/generations?user_id=${encodeURIComponent(userId)}&limit=15`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "history failed");
         const items = data.generations || [];
@@ -1147,7 +1258,7 @@
           el.onclick = async () => {
             const id = el.getAttribute("data-id");
             setStatus("이력 불러오는 중…");
-            const res = await fetch(`/api/generation/${id}?user_id=${encodeURIComponent(userId)}`);
+            const res = await api(`/api/generation/${id}?user_id=${encodeURIComponent(userId)}`);
             const data = await res.json();
             if (!res.ok) return setStatus(data.error || "조회 실패", "err");
             showResult({
@@ -1190,9 +1301,8 @@
       btn.disabled = true;
       setStatus("생성 중… 잠시만 기다려 주세요.");
       try {
-        const res = await fetch("/api/generate", {
+        const res = await api("/api/generate", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             user_id: userId,
             platform,
@@ -1228,9 +1338,8 @@
       const account_id = document.getElementById("manualAccountId").value.trim();
       const account_name = document.getElementById("manualName").value.trim();
       if (!access_token) return setAccountStatus("토큰을 입력하세요.", "err");
-      const res = await fetch("/api/accounts", {
+      const res = await api("/api/accounts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user_id: userId,
           platform,
@@ -1262,7 +1371,7 @@
           session_id: "publish",
           filename: file.name.replace(/[^\w.\-]+/g, "_"),
         });
-        const res = await fetch(`/api/upload?${q}`, {
+        const res = await api(`/api/upload?${q}`, {
           method: "POST",
           headers: { "Content-Type": file.type || "video/mp4" },
           body: file,
@@ -1281,14 +1390,102 @@
     document.getElementById("refreshJobs").onclick = loadJobs;
     document.getElementById("refreshHistory").onclick = loadHistory;
 
+    function setAuthStatus(msg, cls = "") {
+      authStatus.textContent = msg;
+      authStatus.className = "status " + cls;
+    }
+    function setBillingStatus(msg, cls = "") {
+      billingStatus.textContent = msg;
+      billingStatus.className = "status " + cls;
+    }
+
+    document.getElementById("authSignup").onclick = async () => {
+      const email = document.getElementById("authEmail").value.trim();
+      const password = document.getElementById("authPassword").value;
+      const display_name = document.getElementById("authName").value.trim();
+      setAuthStatus("가입 중…");
+      const res = await api("/api/auth/signup", {
+        method: "POST",
+        body: JSON.stringify({ email, password, display_name: display_name || undefined }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const map = {
+          email_already_registered: "이미 가입된 이메일입니다.",
+          password_min_8: "비밀번호는 8자 이상이어야 합니다.",
+          valid_email_required: "올바른 이메일을 입력하세요.",
+        };
+        return setAuthStatus(map[data.error] || data.error || "가입 실패", "err");
+      }
+      userId = data.user.id;
+      localStorage.setItem("snsagent_user_id", userId);
+      setAuthStatus("가입 완료. 로그인되었습니다.", "ok");
+      await loadMe();
+      await loadHistory();
+    };
+
+    document.getElementById("authLogin").onclick = async () => {
+      const email = document.getElementById("authEmail").value.trim();
+      const password = document.getElementById("authPassword").value;
+      setAuthStatus("로그인 중…");
+      const res = await api("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) return setAuthStatus("이메일 또는 비밀번호가 올바르지 않습니다.", "err");
+      userId = data.user.id;
+      localStorage.setItem("snsagent_user_id", userId);
+      setAuthStatus("로그인되었습니다.", "ok");
+      await loadMe();
+      await loadHistory();
+    };
+
+    document.getElementById("authLogout").onclick = async () => {
+      await api("/api/auth/logout", { method: "POST", body: "{}" });
+      authUser = null;
+      setAuthStatus("로그아웃되었습니다.", "ok");
+      await loadMe();
+    };
+
+    document.getElementById("upgradePro").onclick = async () => {
+      setBillingStatus("Checkout 준비 중…");
+      const res = await api("/api/billing/checkout", {
+        method: "POST",
+        body: JSON.stringify({ user_id: userId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return setBillingStatus(
+          data.message || (data.error === "login_required" ? "먼저 로그인해 주세요." : data.error) || "실패",
+          "err",
+        );
+      }
+      location.href = data.checkout_url;
+    };
+
+    document.getElementById("openPortal").onclick = async () => {
+      setBillingStatus("포털 여는 중…");
+      const res = await api("/api/billing/portal", {
+        method: "POST",
+        body: JSON.stringify({ user_id: userId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return setBillingStatus(data.message || data.error || "포털 실패", "err");
+      }
+      location.href = data.portal_url;
+    };
+
     // OAuth callback returns to #publish — map legacy hashes
     const hash = (location.hash.replace(/^#/, "") || "home");
-    const initial = hash === "history-section" ? "history" : hash;
+    const initial = hash === "history-section" ? "history" : hash.split("?")[0];
     setTab(initial);
     loadQuota();
     loadHistory();
     loadAccounts();
     loadJobs();
+    loadDiagnostics();
   </script>
 </body>
 </html>

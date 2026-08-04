@@ -71,12 +71,12 @@ Bindings (Production / Preview 각각):
 | POST | `/api/generate` | 한국어 대본/캡션 생성 |
 | GET | `/api/generations` | 생성 이력 |
 | GET/POST/DELETE | `/api/accounts` | 플랫폼 계정 연결 |
-| GET | `/api/oauth/:platform` | OAuth 시작 (instagram/facebook/youtube/tiktok) |
+| GET | `/api/diagnostics` | Secrets/연동 준비 상태 |
+| GET | `/api/oauth/:platform` | OAuth 시작 |
 | GET | `/api/oauth/callback` | OAuth 콜백 |
-| POST | `/api/publish` | 게시 (Meta 자동 / 그 외 수동 패키지) |
-| GET | `/api/publishes` | 게시 작업 목록 |
-| POST | `/api/upload` | 영상 업로드 → R2 |
-| GET | `/api/assets/*` | R2 공개 조회 |
+| POST | `/api/publish` | 게시 |
+| POST | `/api/auth/signup` · `/login` · `/logout` | 회원 |
+| POST | `/api/billing/checkout` · `/portal` · `/webhook` | Stripe |
 
 ## 게시 연동 Secrets
 

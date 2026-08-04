@@ -1,14 +1,19 @@
 import { corsHeaders, json, type Env } from "../_shared";
-import { ensureUser, getQuota } from "../_billing";
+import { resolveUserId } from "../_auth";
+import { getQuota } from "../_billing";
 
 /**
  * GET /api/me?user_id=
+ * Cookie session 우선, 없으면 guest user_id.
  */
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const url = new URL(context.request.url);
-  const userId = url.searchParams.get("user_id") ?? "user_demo";
-
-  await ensureUser(context.env, userId);
+  const fallback = url.searchParams.get("user_id");
+  const { userId, auth } = await resolveUserId(
+    context.env,
+    context.request,
+    fallback,
+  );
   const quota = await getQuota(context.env, userId);
 
   const user = await context.env.DB.prepare(
@@ -19,6 +24,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
   return json({
     user,
+    auth,
+    authenticated: Boolean(auth),
     quota,
   });
 };

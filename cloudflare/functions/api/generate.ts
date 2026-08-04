@@ -6,7 +6,8 @@ import {
   type ContentType,
   type Platform,
 } from "../_content";
-import { ensureUser, getQuota, incrementUsage } from "../_billing";
+import { resolveUserId } from "../_auth";
+import { getQuota, incrementUsage } from "../_billing";
 
 const ALLOWED_PLATFORMS = new Set<Platform>([
   "instagram_reels",
@@ -45,7 +46,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     user_id?: string;
   };
 
-  const userId = (body.user_id ?? "user_demo").trim() || "user_demo";
+  const { userId } = await resolveUserId(context.env, context.request, body.user_id);
   const platform = (body.platform ?? "").trim() as Platform;
   const contentType = (body.content_type ?? "bundle").trim() as ContentType;
   const topic = (body.topic ?? "").trim();
@@ -69,7 +70,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     );
   }
 
-  await ensureUser(context.env, userId);
   const quota = await getQuota(context.env, userId);
   if (!quota.allowed) {
     return json(
