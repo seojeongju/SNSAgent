@@ -30,6 +30,8 @@ node_modules/
 .wrangler/
 .dev.vars
 cloudflare/.wrangler/
+d1_create_out.txt
+r2_create_out.txt
 
 # Keep required JSON in repo (do not use blanket *.json)
 # agents_registry.json, package.json, tsconfig.json must be tracked
