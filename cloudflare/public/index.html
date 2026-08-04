@@ -493,7 +493,6 @@
   </div>
 
   <script>
-    // Fix typo in headline if needed - rendered in HTML
     const userId = localStorage.getItem("snsagent_user_id") || (() => {
       const id = "user_" + Math.random().toString(36).slice(2, 10);
       localStorage.setItem("snsagent_user_id", id);
