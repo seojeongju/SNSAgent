@@ -4,26 +4,32 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>SNSAgent — 숏폼 콘텐츠 에이전트</title>
-  <meta name="description" content="인스타 릴스, 유튜브 쇼츠, 틱톡, 페이스북용 한국어 대본과 캡션을 빠르게 만드는 SNSAgent" />
+  <meta name="description" content="인스타 릴스, 유튜브 쇼츠, 틱톡, 페이스북용 한국어 대본·캡션 생성과 게시를 위한 SNSAgent" />
+  <link rel="icon" href="/assets/snsagent-logo.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/assets/snsagent-logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #f4f1ec;
-      --bg-deep: #e8e2d8;
-      --ink: #171513;
-      --ink-soft: #5c564e;
-      --line: rgba(23, 21, 19, 0.12);
-      --surface: rgba(255, 252, 248, 0.78);
-      --accent: #0f766e;
-      --accent-deep: #115e59;
-      --ok: #0f766e;
+      --bg: #f3efe8;
+      --ink: #141210;
+      --ink-soft: #5a534c;
+      --line: rgba(20, 18, 16, 0.11);
+      --surface: rgba(255, 252, 248, 0.82);
+      --surface-solid: #fffdf9;
+      --accent: #0d6e66;
+      --accent-deep: #0a5650;
+      --accent-soft: rgba(13, 110, 102, 0.1);
+      --amber: #d97706;
+      --ok: #0d6e66;
       --err: #b42318;
-      --radius: 14px;
-      --shadow: 0 18px 50px rgba(23, 21, 19, 0.08);
+      --radius: 16px;
+      --shadow: 0 20px 48px rgba(20, 18, 16, 0.07);
       --font-display: "Syne", "IBM Plex Sans KR", sans-serif;
       --font-body: "IBM Plex Sans KR", sans-serif;
+      --header-h: 64px;
+      --tabs-h: 52px;
     }
 
     * { box-sizing: border-box; }
@@ -34,9 +40,9 @@
       color: var(--ink);
       font-family: var(--font-body);
       background:
-        radial-gradient(900px 520px at 8% -8%, rgba(15, 118, 110, 0.14), transparent 58%),
-        radial-gradient(780px 420px at 96% 4%, rgba(245, 158, 11, 0.12), transparent 52%),
-        linear-gradient(180deg, #f7f4ef 0%, var(--bg) 42%, #efe9e0 100%);
+        radial-gradient(920px 480px at 6% -10%, rgba(13, 110, 102, 0.13), transparent 55%),
+        radial-gradient(700px 420px at 100% 0%, rgba(217, 119, 6, 0.1), transparent 48%),
+        linear-gradient(180deg, #f8f5f0 0%, var(--bg) 45%, #ebe4d9 100%);
       background-attachment: fixed;
     }
 
@@ -45,94 +51,255 @@
       position: fixed;
       inset: 0;
       pointer-events: none;
-      opacity: 0.35;
+      opacity: 0.28;
       background-image:
-        linear-gradient(rgba(23, 21, 19, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(23, 21, 19, 0.03) 1px, transparent 1px);
-      background-size: 48px 48px;
-      mask-image: radial-gradient(circle at 50% 20%, black, transparent 75%);
+        linear-gradient(rgba(20, 18, 16, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(20, 18, 16, 0.03) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: radial-gradient(ellipse at 50% 0%, black 20%, transparent 70%);
     }
 
-    .wrap {
+    .app {
       position: relative;
       width: min(1120px, calc(100% - 2rem));
       margin: 0 auto;
+      padding-bottom: 3rem;
     }
 
-    /* —— Top bar —— */
-    .nav {
+    /* —— Header —— */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 1.1rem 0 0;
+      gap: 1rem;
+      min-height: var(--header-h);
+      padding: 0.65rem 0 0.35rem;
+      background: linear-gradient(180deg, rgba(248, 245, 240, 0.94) 55%, rgba(248, 245, 240, 0));
+      backdrop-filter: blur(10px);
     }
-    .nav-brand {
+
+    .brand-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      text-decoration: none;
+      color: var(--ink);
+      animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .brand-link img {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      object-fit: cover;
+      box-shadow: 0 8px 20px rgba(13, 110, 102, 0.18);
+      transition: transform 0.25s ease;
+    }
+    .brand-link:hover img { transform: scale(1.04) rotate(-2deg); }
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.05;
+    }
+    .brand-name {
       font-family: var(--font-display);
       font-weight: 800;
-      font-size: 1.15rem;
-      letter-spacing: -0.04em;
-      color: var(--ink);
-      text-decoration: none;
+      font-size: 1.28rem;
+      letter-spacing: -0.05em;
     }
+    .brand-sub {
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--ink-soft);
+      letter-spacing: -0.01em;
+      margin-top: 0.15rem;
+    }
+
     .quota {
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: 500;
       color: var(--ink-soft);
       border: 1px solid var(--line);
-      background: rgba(255, 252, 248, 0.65);
-      border-radius: 10px;
+      background: rgba(255, 252, 248, 0.72);
+      border-radius: 11px;
       padding: 0.45rem 0.75rem;
+      white-space: nowrap;
+      animation: rise 0.7s 0.06s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    /* —— Tabs —— */
+    .tabs-wrap {
+      position: sticky;
+      top: calc(var(--header-h) - 4px);
+      z-index: 35;
+      padding: 0.25rem 0 0.55rem;
+      background: linear-gradient(180deg, rgba(248, 245, 240, 0.92), rgba(248, 245, 240, 0.55) 70%, transparent);
       backdrop-filter: blur(8px);
+      animation: rise 0.75s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .tabs {
+      display: flex;
+      gap: 0.3rem;
+      padding: 0.28rem;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 252, 248, 0.7);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: var(--ink-soft);
+      font: inherit;
+      font-weight: 600;
+      font-size: 0.9rem;
+      letter-spacing: -0.02em;
+      padding: 0.7rem 1rem;
+      border-radius: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+    }
+    .tab:hover { color: var(--ink); background: rgba(20, 18, 16, 0.04); }
+    .tab[aria-selected="true"] {
+      color: #fff8f0;
+      background: var(--accent);
+      box-shadow: 0 8px 18px rgba(13, 110, 102, 0.22);
+    }
+    .tab:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
     }
 
-    /* —— Hero (first viewport = one composition) —— */
+    /* —— Panels —— */
+    .panel-view[hidden] { display: none !important; }
+    .panel-view {
+      animation: panel-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
     .hero {
-      min-height: calc(100svh - 4rem);
       display: grid;
-      grid-template-columns: 1.05fr 0.95fr;
-      gap: 2.5rem;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 2rem;
       align-items: center;
-      padding: 1.5rem 0 3rem;
+      min-height: calc(100svh - var(--header-h) - var(--tabs-h) - 2.5rem);
+      padding: 1rem 0 2rem;
     }
-
-    .hero-copy { max-width: 34rem; }
-    .brand {
-      margin: 0 0 1.1rem;
+    .hero-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      margin-bottom: 1rem;
+    }
+    .hero-brand img {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+    .hero-brand-name {
+      margin: 0;
       font-family: var(--font-display);
       font-weight: 800;
-      font-size: clamp(3.4rem, 8vw, 5.6rem);
-      line-height: 0.92;
+      font-size: clamp(2.4rem, 6vw, 3.6rem);
       letter-spacing: -0.06em;
-      color: var(--ink);
-      animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+      line-height: 0.95;
     }
     .headline {
       margin: 0 0 0.85rem;
-      font-size: clamp(1.35rem, 2.6vw, 1.85rem);
+      font-size: clamp(1.35rem, 2.5vw, 1.85rem);
       font-weight: 600;
       letter-spacing: -0.03em;
       line-height: 1.35;
-      animation: rise 0.9s 0.08s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
     .lede {
-      margin: 0 0 1.75rem;
+      margin: 0 0 1.5rem;
       color: var(--ink-soft);
       font-size: 1.02rem;
       line-height: 1.65;
       max-width: 30rem;
-      animation: rise 0.9s 0.14s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
-    .cta-row {
+    .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; }
+
+    .phone {
+      width: min(250px, 70vw);
+      aspect-ratio: 9 / 17.5;
+      margin: 0 auto;
+      border-radius: 32px;
+      padding: 0.5rem;
+      background: linear-gradient(160deg, #2a2724, #141210 55%, #0c0b0a);
+      box-shadow: var(--shadow);
+      animation: float 5.5s ease-in-out infinite;
+    }
+    .phone-screen {
+      height: 100%;
+      border-radius: 26px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(13,110,102,0.38), transparent 42%),
+        linear-gradient(165deg, #1f2937, #0f172a 58%, #134e4a);
+      color: #f8fafc;
+      padding: 1.25rem 1rem;
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      animation: rise 0.9s 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 0.65rem;
     }
+    .phone-hook {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.25rem;
+      letter-spacing: -0.04em;
+      line-height: 1.2;
+    }
+    .phone-cap { font-size: 0.84rem; line-height: 1.5; opacity: 0.92; }
+    .phone-tags { font-size: 0.76rem; opacity: 0.68; }
+
+    .view-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 1rem;
+      margin: 0.6rem 0 1rem;
+    }
+    .view-head h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.55rem, 3vw, 1.95rem);
+      letter-spacing: -0.04em;
+    }
+    .view-head p {
+      margin: 0.3rem 0 0;
+      color: var(--ink-soft);
+      font-size: 0.93rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: calc(var(--radius) + 2px);
+      padding: 1.15rem;
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
+      margin-bottom: 1rem;
+    }
+    .card h3 {
+      margin: 0 0 0.75rem;
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      letter-spacing: -0.03em;
+    }
+
     .btn {
       appearance: none;
       border: 0;
       border-radius: 12px;
-      padding: 0.9rem 1.25rem;
+      padding: 0.85rem 1.15rem;
       font: inherit;
       font-weight: 600;
       letter-spacing: -0.02em;
@@ -142,13 +309,11 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      color: inherit;
     }
     .btn:hover { transform: translateY(-1px); }
     .btn:active { transform: translateY(0); }
-    .btn-primary {
-      background: var(--accent);
-      color: #fff7ed;
-    }
+    .btn-primary { background: var(--accent); color: #fff7ed; }
     .btn-primary:hover { background: var(--accent-deep); }
     .btn-secondary {
       background: transparent;
@@ -156,87 +321,7 @@
       border: 1px solid var(--line);
     }
     .btn:disabled { opacity: 0.55; cursor: wait; transform: none; }
-
-    /* Phone visual — product-like anchor */
-    .hero-visual {
-      display: flex;
-      justify-content: center;
-      animation: float-in 1s 0.15s cubic-bezier(0.22, 1, 0.36, 1) both;
-    }
-    .phone {
-      width: min(280px, 72vw);
-      aspect-ratio: 9 / 17.5;
-      border-radius: 34px;
-      padding: 0.55rem;
-      background: linear-gradient(160deg, #2a2724, #171513 55%, #0f0e0d);
-      box-shadow: var(--shadow), 0 0 0 1px rgba(255,255,255,0.08) inset;
-      position: relative;
-      animation: float 5.5s ease-in-out infinite;
-    }
-    .phone-screen {
-      height: 100%;
-      border-radius: 28px;
-      overflow: hidden;
-      background:
-        linear-gradient(180deg, rgba(15,118,110,0.35), transparent 40%),
-        linear-gradient(165deg, #1f2937, #0f172a 60%, #134e4a);
-      color: #f8fafc;
-      padding: 1.35rem 1.1rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      gap: 0.7rem;
-    }
-    .phone-hook {
-      font-family: var(--font-display);
-      font-weight: 700;
-      font-size: 1.35rem;
-      letter-spacing: -0.04em;
-      line-height: 1.2;
-    }
-    .phone-cap {
-      font-size: 0.86rem;
-      line-height: 1.5;
-      opacity: 0.92;
-    }
-    .phone-tags {
-      font-size: 0.78rem;
-      opacity: 0.7;
-      letter-spacing: -0.01em;
-    }
-
-    /* —— Studio section —— */
-    .section {
-      padding: 1rem 0 3.5rem;
-    }
-    .section-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: end;
-      gap: 1rem;
-      margin-bottom: 1.1rem;
-    }
-    .section-head h2 {
-      margin: 0;
-      font-family: var(--font-display);
-      font-size: clamp(1.6rem, 3vw, 2rem);
-      letter-spacing: -0.04em;
-    }
-    .section-head p {
-      margin: 0.35rem 0 0;
-      color: var(--ink-soft);
-      font-size: 0.95rem;
-    }
-
-    .panel {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: calc(var(--radius) + 4px);
-      padding: 1.15rem;
-      backdrop-filter: blur(12px);
-      box-shadow: var(--shadow);
-      margin-bottom: 1rem;
-    }
+    .btn-sm { font-size: 0.78rem; padding: 0.38rem 0.65rem; border-radius: 9px; }
 
     label {
       display: block;
@@ -250,26 +335,27 @@
       grid-template-columns: 1fr 1fr;
       gap: 0.85rem;
     }
-    select, textarea, input {
+    select, textarea, input[type="text"], input[type="url"], input:not([type]), input[type="file"] {
       width: 100%;
       border: 1px solid var(--line);
       border-radius: 12px;
-      background: rgba(255, 252, 248, 0.9);
+      background: var(--surface-solid);
       color: var(--ink);
       padding: 0.78rem 0.85rem;
       font: inherit;
       outline: none;
       transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
+    input[type="file"] { padding: 0.55rem; }
     select:focus, textarea:focus, input:focus {
-      border-color: rgba(15, 118, 110, 0.45);
-      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+      border-color: rgba(13, 110, 102, 0.45);
+      box-shadow: 0 0 0 3px rgba(13, 110, 102, 0.12);
     }
     textarea { min-height: 110px; resize: vertical; }
     .actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.7rem;
+      gap: 0.65rem;
       margin-top: 1rem;
     }
     .status {
@@ -289,6 +375,7 @@
     .result-block h3 {
       margin: 0 0 0.45rem;
       font-size: 1rem;
+      font-family: var(--font-body);
       letter-spacing: -0.02em;
     }
     .scene {
@@ -296,7 +383,7 @@
       border-radius: 12px;
       padding: 0.8rem;
       margin: 0.5rem 0;
-      background: rgba(255, 252, 248, 0.7);
+      background: rgba(255, 252, 248, 0.75);
     }
     .meta {
       color: var(--ink-soft);
@@ -306,7 +393,7 @@
     .caption-box, .script-box {
       white-space: pre-wrap;
       line-height: 1.6;
-      background: rgba(255, 252, 248, 0.85);
+      background: rgba(255, 252, 248, 0.9);
       border-radius: 12px;
       padding: 0.9rem;
       border: 1px solid var(--line);
@@ -315,12 +402,15 @@
       display: flex;
       justify-content: space-between;
       gap: 0.75rem;
-      padding: 0.8rem 0;
+      padding: 0.85rem 0;
       border-bottom: 1px solid var(--line);
       cursor: pointer;
-      transition: color 0.15s ease;
+      transition: color 0.15s ease, padding-left 0.15s ease;
     }
-    .history-item:hover { color: var(--accent-deep); }
+    .history-item:hover {
+      color: var(--accent-deep);
+      padding-left: 0.25rem;
+    }
     .tag {
       display: inline-block;
       font-size: 0.75rem;
@@ -328,7 +418,7 @@
       border-radius: 8px;
       padding: 0.2rem 0.55rem;
       color: var(--ink-soft);
-      background: rgba(255,252,248,0.7);
+      background: rgba(255,252,248,0.75);
     }
     details { margin-top: 0.85rem; }
     summary { cursor: pointer; color: var(--ink-soft); font-size: 0.9rem; }
@@ -340,37 +430,16 @@
       max-height: 240px;
     }
 
-    .footer {
-      padding: 1rem 0 2.5rem;
-      color: var(--ink-soft);
-      font-size: 0.85rem;
-      border-top: 1px solid var(--line);
-      margin-top: 1rem;
-    }
-
-    @keyframes rise {
-      from { opacity: 0; transform: translateY(18px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes float-in {
-      from { opacity: 0; transform: translateY(28px) scale(0.98); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-
     .account-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.65rem;
+      gap: 0.7rem;
     }
     .account-card {
       border: 1px solid var(--line);
       border-radius: 12px;
-      padding: 0.75rem 0.85rem;
-      background: rgba(255,252,248,0.55);
+      padding: 0.85rem;
+      background: rgba(255,252,248,0.6);
     }
     .account-card .name { font-weight: 600; font-size: 0.92rem; }
     .account-card .meta { margin-top: 0.2rem; }
@@ -379,11 +448,6 @@
       gap: 0.4rem;
       flex-wrap: wrap;
       margin-top: 0.55rem;
-    }
-    .btn-sm {
-      font-size: 0.78rem;
-      padding: 0.38rem 0.65rem;
-      border-radius: 9px;
     }
     .dot {
       display: inline-block;
@@ -395,12 +459,13 @@
     }
     .dot.on { background: var(--ok); }
     .dot.off { background: #c4bbb0; }
+
     .publish-out {
       margin-top: 0.85rem;
       padding: 0.85rem;
       border-radius: 12px;
       border: 1px dashed var(--line);
-      background: rgba(15, 118, 110, 0.04);
+      background: var(--accent-soft);
       font-size: 0.9rem;
       white-space: pre-wrap;
     }
@@ -408,23 +473,88 @@
       display: flex;
       justify-content: space-between;
       gap: 0.75rem;
-      padding: 0.65rem 0;
+      padding: 0.7rem 0;
       border-bottom: 1px solid var(--line);
       font-size: 0.9rem;
     }
     .job-item:last-child { border-bottom: 0; }
+    .job-item a { color: var(--accent); font-weight: 600; text-decoration: none; }
+    .job-item a:hover { text-decoration: underline; }
+
+    .feature-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+    .feature-chip {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 0.9rem 1rem;
+      background: rgba(255,252,248,0.55);
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+      transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+    }
+    .feature-chip:hover {
+      border-color: rgba(13, 110, 102, 0.35);
+      background: rgba(255,252,248,0.9);
+      transform: translateY(-2px);
+    }
+    .feature-chip strong {
+      display: block;
+      font-family: var(--font-display);
+      font-size: 0.98rem;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.25rem;
+    }
+    .feature-chip span {
+      color: var(--ink-soft);
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+
+    .footer {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+      color: var(--ink-soft);
+      font-size: 0.84rem;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+    .footer img {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes panel-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
 
     @media (max-width: 860px) {
       .hero {
         grid-template-columns: 1fr;
         min-height: auto;
-        padding-top: 2rem;
-        gap: 2rem;
+        gap: 1.5rem;
       }
       .hero-visual { order: -1; }
-      .phone { width: min(240px, 68vw); }
-      .grid { grid-template-columns: 1fr; }
-      .account-grid { grid-template-columns: 1fr; }
+      .phone { width: min(220px, 62vw); }
+      .grid, .account-grid, .feature-strip { grid-template-columns: 1fr; }
+      .brand-sub { display: none; }
+      .tab { padding: 0.65rem 0.8rem; font-size: 0.85rem; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -436,46 +566,82 @@
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <nav class="nav" aria-label="상단">
-      <a class="nav-brand" href="#">SNSAgent</a>
+  <div class="app">
+    <header class="header">
+      <a class="brand-link" href="#home" data-tab-link="home" aria-label="SNSAgent 홈">
+        <img src="/assets/snsagent-logo.png" alt="SNSAgent 로고" width="42" height="42" />
+        <span class="brand-text">
+          <span class="brand-name">SNSAgent</span>
+          <span class="brand-sub">숏폼 콘텐츠 에이전트</span>
+        </span>
+      </a>
       <div id="quotaBadge" class="quota">한도 확인 중…</div>
-    </nav>
+    </header>
 
-    <section class="hero" aria-label="메인 히어로">
-      <div class="hero-copy">
-        <p class="brand">SNSAgent</p>
-        <h1 class="headline">숏폼, 한국어로<br />바로 뽑아 드려요.</h1>
-        <p class="lede">
-          인스타 릴스 · 유튜브 쇼츠 · 틱톡 · 페이스북용 대본과 캡션을
-          20–30대 호흡에 맞게 깔끔하게 만들어 줍니다.
-        </p>
-        <div class="cta-row">
-          <a class="btn btn-primary" href="#studio">콘텐츠 만들기</a>
-          <a class="btn btn-secondary" href="#publish">게시 연동</a>
+    <div class="tabs-wrap">
+      <nav class="tabs" role="tablist" aria-label="기능 탭">
+        <button class="tab" role="tab" id="tab-home" aria-controls="view-home" aria-selected="true" data-tab="home" type="button">홈</button>
+        <button class="tab" role="tab" id="tab-studio" aria-controls="view-studio" aria-selected="false" data-tab="studio" type="button">스튜디오</button>
+        <button class="tab" role="tab" id="tab-publish" aria-controls="view-publish" aria-selected="false" data-tab="publish" type="button">게시</button>
+        <button class="tab" role="tab" id="tab-accounts" aria-controls="view-accounts" aria-selected="false" data-tab="accounts" type="button">계정</button>
+        <button class="tab" role="tab" id="tab-history" aria-controls="view-history" aria-selected="false" data-tab="history" type="button">이력</button>
+      </nav>
+    </div>
+
+    <!-- HOME -->
+    <section class="panel-view" id="view-home" role="tabpanel" aria-labelledby="tab-home">
+      <div class="hero">
+        <div>
+          <div class="hero-brand">
+            <img src="/assets/snsagent-logo.png" alt="" width="64" height="64" />
+            <p class="hero-brand-name">SNSAgent</p>
+          </div>
+          <h1 class="headline">숏폼, 한국어로<br />바로 뽑아 드려요.</h1>
+          <p class="lede">
+            인스타 릴스 · 유튜브 쇼츠 · 틱톡 · 페이스북용 대본과 캡션을
+            만들고, 계정 연동으로 게시까지 이어갑니다.
+          </p>
+          <div class="cta-row">
+            <button class="btn btn-primary" type="button" data-tab-link="studio">콘텐츠 만들기</button>
+            <button class="btn btn-secondary" type="button" data-tab-link="publish">게시하러 가기</button>
+          </div>
+          <div class="feature-strip">
+            <button class="feature-chip" type="button" data-tab-link="studio">
+              <strong>스튜디오</strong>
+              <span>플랫폼별 대본·캡션 생성</span>
+            </button>
+            <button class="feature-chip" type="button" data-tab-link="publish">
+              <strong>게시</strong>
+              <span>영상 업로드 후 플랫폼 게시</span>
+            </button>
+            <button class="feature-chip" type="button" data-tab-link="accounts">
+              <strong>계정</strong>
+              <span>Meta · YouTube · TikTok 연결</span>
+            </button>
+          </div>
         </div>
-      </div>
-
-      <div class="hero-visual" aria-hidden="true">
-        <div class="phone">
-          <div class="phone-screen">
-            <div class="phone-hook">3초만 더 보면<br />홈카페 성공함</div>
-            <div class="phone-cap">원두만 바꿔도 맛이 달라져요. 오늘 저녁 5분만 투자해보세요.</div>
-            <div class="phone-tags">#홈카페 #숏폼팁 #릴스대본</div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="phone">
+            <div class="phone-screen">
+              <div class="phone-hook">3초만 더 보면<br />홈카페 성공함</div>
+              <div class="phone-cap">원두만 바꿔도 맛이 달라져요. 오늘 저녁 5분만 투자해보세요.</div>
+              <div class="phone-tags">#홈카페 #숏폼팁 #릴스대본</div>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="section" id="studio">
-      <div class="section-head">
+    <!-- STUDIO -->
+    <section class="panel-view" id="view-studio" role="tabpanel" aria-labelledby="tab-studio" hidden>
+      <div class="view-head">
         <div>
           <h2>스튜디오</h2>
           <p>플랫폼과 주제를 고르면 한국어 대본·캡션을 생성합니다.</p>
         </div>
       </div>
 
-      <div class="panel">
+      <div class="card">
         <div class="grid">
           <div>
             <label for="platform">플랫폼</label>
@@ -513,15 +679,18 @@
 
         <div class="actions">
           <button class="btn btn-primary" id="generate" type="button">한국어 콘텐츠 생성</button>
-          <button class="btn btn-secondary" id="refreshHistory" type="button">이력 새로고침</button>
+          <button class="btn btn-secondary" type="button" data-tab-link="history">이력 보기</button>
         </div>
         <div id="status" class="status"></div>
       </div>
 
-      <div class="panel" id="resultCard" hidden>
-        <h2 style="margin:0 0 0.4rem;font-family:var(--font-display);font-size:1.35rem;letter-spacing:-0.03em;">생성 결과</h2>
+      <div class="card" id="resultCard" hidden>
+        <h3>생성 결과</h3>
         <div id="resultMeta" class="meta"></div>
         <div id="resultView"></div>
+        <div class="actions">
+          <button class="btn btn-primary" type="button" data-tab-link="publish">이 결과로 게시</button>
+        </div>
         <details>
           <summary>원본 JSON</summary>
           <pre id="resultJson"></pre>
@@ -529,48 +698,17 @@
       </div>
     </section>
 
-    <section class="section" id="publish" style="padding-top:0;">
-      <div class="section-head">
+    <!-- PUBLISH -->
+    <section class="panel-view" id="view-publish" role="tabpanel" aria-labelledby="tab-publish" hidden>
+      <div class="view-head">
         <div>
-          <h2>게시 연동</h2>
-          <p>계정을 연결하고, 생성한 캡션과 영상으로 플랫폼에 게시합니다.</p>
+          <h2>게시</h2>
+          <p>생성한 캡션과 영상으로 플랫폼에 게시합니다.</p>
         </div>
       </div>
 
-      <div class="panel">
-        <h3 style="margin:0 0 0.75rem;font-family:var(--font-display);font-size:1.05rem;">연결된 계정</h3>
-        <div id="accountList" class="account-grid">
-          <div class="meta">불러오는 중…</div>
-        </div>
-        <details style="margin-top:1rem;">
-          <summary>토큰 직접 등록 (Meta 등)</summary>
-          <div class="grid" style="margin-top:0.75rem;">
-            <div>
-              <label for="manualPlatform">플랫폼</label>
-              <select id="manualPlatform">
-                <option value="instagram_reels">인스타그램 릴스</option>
-                <option value="facebook">페이스북</option>
-                <option value="youtube_shorts">유튜브 쇼츠</option>
-                <option value="tiktok">틱톡</option>
-              </select>
-            </div>
-            <div>
-              <label for="manualAccountId">계정/페이지 ID</label>
-              <input id="manualAccountId" placeholder="IG User ID 또는 Page ID" />
-            </div>
-          </div>
-          <label for="manualToken">Access Token</label>
-          <input id="manualToken" placeholder="장기 액세스 토큰" />
-          <label for="manualName">표시 이름 (선택)</label>
-          <input id="manualName" placeholder="내 브랜드 페이지" />
-          <div class="actions">
-            <button class="btn btn-secondary btn-sm" id="saveManualAccount" type="button">계정 저장</button>
-          </div>
-        </details>
-      </div>
-
-      <div class="panel">
-        <h3 style="margin:0 0 0.75rem;font-family:var(--font-display);font-size:1.05rem;">게시하기</h3>
+      <div class="card">
+        <h3>게시하기</h3>
         <div class="grid">
           <div>
             <label for="publishPlatform">게시 플랫폼</label>
@@ -595,32 +733,79 @@
         <div class="actions">
           <button class="btn btn-primary" id="doPublish" type="button">게시 요청</button>
           <button class="btn btn-secondary" id="doManualPack" type="button">수동 게시 패키지</button>
-          <button class="btn btn-secondary" id="refreshJobs" type="button">게시 이력</button>
+          <button class="btn btn-secondary" id="refreshJobs" type="button">이력 새로고침</button>
         </div>
         <div id="publishStatus" class="status"></div>
         <div id="publishOut" class="publish-out" hidden></div>
       </div>
 
-      <div class="panel">
-        <h3 style="margin:0 0 0.5rem;font-family:var(--font-display);font-size:1.05rem;">최근 게시 작업</h3>
+      <div class="card">
+        <h3>최근 게시 작업</h3>
         <div id="jobsList" class="meta">아직 없음</div>
       </div>
     </section>
 
-    <section class="section" id="history-section" style="padding-top:0;">
-      <div class="section-head">
+    <!-- ACCOUNTS -->
+    <section class="panel-view" id="view-accounts" role="tabpanel" aria-labelledby="tab-accounts" hidden>
+      <div class="view-head">
+        <div>
+          <h2>계정 연결</h2>
+          <p>플랫폼 계정을 연결하면 자동 게시가 가능해집니다.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>연결된 계정</h3>
+        <div id="accountList" class="account-grid">
+          <div class="meta">불러오는 중…</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>토큰 직접 등록</h3>
+        <div class="grid">
+          <div>
+            <label for="manualPlatform">플랫폼</label>
+            <select id="manualPlatform">
+              <option value="instagram_reels">인스타그램 릴스</option>
+              <option value="facebook">페이스북</option>
+              <option value="youtube_shorts">유튜브 쇼츠</option>
+              <option value="tiktok">틱톡</option>
+            </select>
+          </div>
+          <div>
+            <label for="manualAccountId">계정/페이지 ID</label>
+            <input id="manualAccountId" placeholder="IG User ID 또는 Page ID" />
+          </div>
+        </div>
+        <label for="manualToken">Access Token</label>
+        <input id="manualToken" placeholder="장기 액세스 토큰" />
+        <label for="manualName">표시 이름 (선택)</label>
+        <input id="manualName" placeholder="내 브랜드 페이지" />
+        <div class="actions">
+          <button class="btn btn-primary" id="saveManualAccount" type="button">계정 저장</button>
+        </div>
+        <div id="accountStatus" class="status"></div>
+      </div>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="panel-view" id="view-history" role="tabpanel" aria-labelledby="tab-history" hidden>
+      <div class="view-head">
         <div>
           <h2>최근 이력</h2>
           <p>이전에 만든 콘텐츠를 다시 열어볼 수 있습니다.</p>
         </div>
+        <button class="btn btn-secondary btn-sm" id="refreshHistory" type="button">새로고침</button>
       </div>
-      <div class="panel">
+      <div class="card">
         <div id="historyList"></div>
       </div>
     </section>
 
     <footer class="footer">
-      SNSAgent — 숏폼 콘텐츠를 위한 한국어 에이전트
+      <img src="/assets/snsagent-logo.png" alt="" width="22" height="22" />
+      <span>SNSAgent — 숏폼 콘텐츠를 위한 한국어 에이전트</span>
     </footer>
   </div>
 
@@ -631,6 +816,7 @@
       return id;
     })();
 
+    const TABS = ["home", "studio", "publish", "accounts", "history"];
     const statusEl = document.getElementById("status");
     const quotaBadge = document.getElementById("quotaBadge");
     const resultCard = document.getElementById("resultCard");
@@ -639,6 +825,7 @@
     const resultJson = document.getElementById("resultJson");
     const historyEl = document.getElementById("historyList");
     const accountList = document.getElementById("accountList");
+    const accountStatus = document.getElementById("accountStatus");
     const publishStatus = document.getElementById("publishStatus");
     const publishOut = document.getElementById("publishOut");
     const jobsList = document.getElementById("jobsList");
@@ -659,14 +846,44 @@
       tiktok: "tiktok",
     };
 
+    function setTab(name) {
+      const tab = TABS.includes(name) ? name : "home";
+      TABS.forEach((t) => {
+        const btn = document.getElementById("tab-" + t);
+        const panel = document.getElementById("view-" + t);
+        const on = t === tab;
+        if (btn) {
+          btn.setAttribute("aria-selected", on ? "true" : "false");
+          btn.tabIndex = on ? 0 : -1;
+        }
+        if (panel) {
+          panel.hidden = !on;
+          if (on) {
+            panel.style.animation = "none";
+            void panel.offsetWidth;
+            panel.style.animation = "";
+          }
+        }
+      });
+      if (location.hash.replace(/^#/, "") !== tab) {
+        history.replaceState(null, "", "#" + tab);
+      }
+      if (tab === "history") loadHistory();
+      if (tab === "accounts") loadAccounts();
+      if (tab === "publish") loadJobs();
+    }
+
     function setStatus(msg, cls = "") {
       statusEl.textContent = msg;
       statusEl.className = "status " + cls;
     }
-
     function setPublishStatus(msg, cls = "") {
       publishStatus.textContent = msg;
       publishStatus.className = "status " + cls;
+    }
+    function setAccountStatus(msg, cls = "") {
+      accountStatus.textContent = msg;
+      accountStatus.className = "status " + cls;
     }
 
     function esc(s) {
@@ -749,7 +966,7 @@
       resultView.innerHTML = renderResult(payload.platform, payload.content_type, payload.result);
       resultJson.textContent = JSON.stringify(payload.result, null, 2);
       syncPublishForm(payload);
-      resultCard.scrollIntoView({ behavior: "smooth", block: "start" });
+      setTab("studio");
     }
 
     async function loadQuota() {
@@ -801,8 +1018,8 @@
               { method: "DELETE" },
             );
             const data = await res.json();
-            if (!res.ok) return setPublishStatus(data.error || "해제 실패", "err");
-            setPublishStatus("계정 연결이 해제되었습니다.", "ok");
+            if (!res.ok) return setAccountStatus(data.error || "해제 실패", "err");
+            setAccountStatus("계정 연결이 해제되었습니다.", "ok");
             loadAccounts();
           };
         });
@@ -931,6 +1148,19 @@
       }
     }
 
+    document.querySelectorAll("[data-tab]").forEach((btn) => {
+      btn.addEventListener("click", () => setTab(btn.getAttribute("data-tab")));
+    });
+    document.querySelectorAll("[data-tab-link]").forEach((el) => {
+      el.addEventListener("click", (e) => {
+        e.preventDefault();
+        setTab(el.getAttribute("data-tab-link"));
+      });
+    });
+    window.addEventListener("hashchange", () => {
+      setTab(location.hash.replace(/^#/, "") || "home");
+    });
+
     document.getElementById("generate").onclick = async () => {
       const btn = document.getElementById("generate");
       const topic = document.getElementById("prompt").value.trim();
@@ -981,7 +1211,7 @@
       const access_token = document.getElementById("manualToken").value.trim();
       const account_id = document.getElementById("manualAccountId").value.trim();
       const account_name = document.getElementById("manualName").value.trim();
-      if (!access_token) return setPublishStatus("토큰을 입력하세요.", "err");
+      if (!access_token) return setAccountStatus("토큰을 입력하세요.", "err");
       const res = await fetch("/api/accounts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1000,8 +1230,8 @@
         }),
       });
       const data = await res.json();
-      if (!res.ok) return setPublishStatus(data.error || "저장 실패", "err");
-      setPublishStatus("계정 토큰이 저장되었습니다.", "ok");
+      if (!res.ok) return setAccountStatus(data.error || "저장 실패", "err");
+      setAccountStatus("계정 토큰이 저장되었습니다.", "ok");
       document.getElementById("manualToken").value = "";
       loadAccounts();
     };
@@ -1034,6 +1264,11 @@
     document.getElementById("doManualPack").onclick = () => runPublish(true);
     document.getElementById("refreshJobs").onclick = loadJobs;
     document.getElementById("refreshHistory").onclick = loadHistory;
+
+    // OAuth callback returns to #publish — map legacy hashes
+    const hash = (location.hash.replace(/^#/, "") || "home");
+    const initial = hash === "history-section" ? "history" : hash;
+    setTab(initial);
     loadQuota();
     loadHistory();
     loadAccounts();

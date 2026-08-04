@@ -24,8 +24,8 @@ function htmlDone(ok: boolean, message: string, base: string): Response {
 <body><div class="card">
   <h1 style="margin:0 0 .5rem;font-size:1.2rem">${ok ? "연결 완료" : "연결 실패"}</h1>
   <p class="${ok ? "ok" : "err"}">${message}</p>
-  <p><a href="${base}/#publish">스튜디오로 돌아가기</a></p>
-  <script>setTimeout(()=>{location.href="${base}/#publish"},1800)</script>
+  <p><a href="${base}/#accounts">계정 탭으로 돌아가기</a></p>
+  <script>setTimeout(()=>{location.href="${base}/#accounts"},1800)</script>
 </div></body></html>`;
   return new Response(body, {
     status: ok ? 200 : 400,
