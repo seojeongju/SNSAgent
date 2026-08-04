@@ -3,192 +3,497 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SNSAgent</title>
+  <title>SNSAgent — 숏폼 콘텐츠 에이전트</title>
+  <meta name="description" content="인스타 릴스, 유튜브 쇼츠, 틱톡, 페이스북용 한국어 대본과 캡션을 빠르게 만드는 SNSAgent" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #0f1419;
-      --panel: #1a2332;
-      --text: #e7ecf3;
-      --muted: #8b9bb4;
-      --accent: #3d8bfd;
-      --line: #2a3648;
-      --ok: #7ddea2;
-      --err: #ff8e8e;
+      --bg: #f4f1ec;
+      --bg-deep: #e8e2d8;
+      --ink: #171513;
+      --ink-soft: #5c564e;
+      --line: rgba(23, 21, 19, 0.12);
+      --surface: rgba(255, 252, 248, 0.78);
+      --accent: #0f766e;
+      --accent-deep: #115e59;
+      --ok: #0f766e;
+      --err: #b42318;
+      --radius: 14px;
+      --shadow: 0 18px 50px rgba(23, 21, 19, 0.08);
+      --font-display: "Syne", "IBM Plex Sans KR", sans-serif;
+      --font-body: "IBM Plex Sans KR", sans-serif;
     }
+
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+      color: var(--ink);
+      font-family: var(--font-body);
       background:
-        radial-gradient(1200px 600px at 10% -10%, #1e3a5f 0%, transparent 55%),
-        radial-gradient(900px 500px at 100% 0%, #243b55 0%, transparent 50%),
-        var(--bg);
-      color: var(--text);
+        radial-gradient(900px 520px at 8% -8%, rgba(15, 118, 110, 0.14), transparent 58%),
+        radial-gradient(780px 420px at 96% 4%, rgba(245, 158, 11, 0.12), transparent 52%),
+        linear-gradient(180deg, #f7f4ef 0%, var(--bg) 42%, #efe9e0 100%);
+      background-attachment: fixed;
     }
-    main { max-width: 880px; margin: 0 auto; padding: 2.25rem 1.25rem 4rem; }
-    header { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; flex-wrap: wrap; }
-    h1 { font-size: 2rem; letter-spacing: -0.03em; margin: 0 0 0.35rem; }
-    .sub { color: var(--muted); margin: 0 0 1.25rem; }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.35;
+      background-image:
+        linear-gradient(rgba(23, 21, 19, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23, 21, 19, 0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(circle at 50% 20%, black, transparent 75%);
+    }
+
+    .wrap {
+      position: relative;
+      width: min(1120px, calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* —— Top bar —— */
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.1rem 0 0;
+    }
+    .nav-brand {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.04em;
+      color: var(--ink);
+      text-decoration: none;
+    }
     .quota {
-      font-size: 0.85rem;
-      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--ink-soft);
       border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 0.4rem 0.85rem;
-      white-space: nowrap;
-    }
-    .card {
-      background: color-mix(in srgb, var(--panel) 88%, transparent);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 1rem;
+      background: rgba(255, 252, 248, 0.65);
+      border-radius: 10px;
+      padding: 0.45rem 0.75rem;
       backdrop-filter: blur(8px);
+    }
+
+    /* —— Hero (first viewport = one composition) —— */
+    .hero {
+      min-height: calc(100svh - 4rem);
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 2.5rem;
+      align-items: center;
+      padding: 1.5rem 0 3rem;
+    }
+
+    .hero-copy { max-width: 34rem; }
+    .brand {
+      margin: 0 0 1.1rem;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(3.4rem, 8vw, 5.6rem);
+      line-height: 0.92;
+      letter-spacing: -0.06em;
+      color: var(--ink);
+      animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .headline {
+      margin: 0 0 0.85rem;
+      font-size: clamp(1.35rem, 2.6vw, 1.85rem);
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1.35;
+      animation: rise 0.9s 0.08s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .lede {
+      margin: 0 0 1.75rem;
+      color: var(--ink-soft);
+      font-size: 1.02rem;
+      line-height: 1.65;
+      max-width: 30rem;
+      animation: rise 0.9s 0.14s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      animation: rise 0.9s 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .btn {
+      appearance: none;
+      border: 0;
+      border-radius: 12px;
+      padding: 0.9rem 1.25rem;
+      font: inherit;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff7ed;
+    }
+    .btn-primary:hover { background: var(--accent-deep); }
+    .btn-secondary {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+    .btn:disabled { opacity: 0.55; cursor: wait; transform: none; }
+
+    /* Phone visual — product-like anchor */
+    .hero-visual {
+      display: flex;
+      justify-content: center;
+      animation: float-in 1s 0.15s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .phone {
+      width: min(280px, 72vw);
+      aspect-ratio: 9 / 17.5;
+      border-radius: 34px;
+      padding: 0.55rem;
+      background: linear-gradient(160deg, #2a2724, #171513 55%, #0f0e0d);
+      box-shadow: var(--shadow), 0 0 0 1px rgba(255,255,255,0.08) inset;
+      position: relative;
+      animation: float 5.5s ease-in-out infinite;
+    }
+    .phone-screen {
+      height: 100%;
+      border-radius: 28px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(15,118,110,0.35), transparent 40%),
+        linear-gradient(165deg, #1f2937, #0f172a 60%, #134e4a);
+      color: #f8fafc;
+      padding: 1.35rem 1.1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 0.7rem;
+    }
+    .phone-hook {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.35rem;
+      letter-spacing: -0.04em;
+      line-height: 1.2;
+    }
+    .phone-cap {
+      font-size: 0.86rem;
+      line-height: 1.5;
+      opacity: 0.92;
+    }
+    .phone-tags {
+      font-size: 0.78rem;
+      opacity: 0.7;
+      letter-spacing: -0.01em;
+    }
+
+    /* —— Studio section —— */
+    .section {
+      padding: 1rem 0 3.5rem;
+    }
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 1rem;
+      margin-bottom: 1.1rem;
+    }
+    .section-head h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 3vw, 2rem);
+      letter-spacing: -0.04em;
+    }
+    .section-head p {
+      margin: 0.35rem 0 0;
+      color: var(--ink-soft);
+      font-size: 0.95rem;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: calc(var(--radius) + 4px);
+      padding: 1.15rem;
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
       margin-bottom: 1rem;
     }
-    label { display: block; font-size: 0.85rem; color: var(--muted); margin: 0.65rem 0 0.35rem; }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--ink-soft);
+      margin: 0.7rem 0 0.35rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.85rem;
+    }
     select, textarea, input {
       width: 100%;
       border: 1px solid var(--line);
-      border-radius: 10px;
-      background: #0c1118;
-      color: var(--text);
-      padding: 0.75rem;
+      border-radius: 12px;
+      background: rgba(255, 252, 248, 0.9);
+      color: var(--ink);
+      padding: 0.78rem 0.85rem;
       font: inherit;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
-    textarea { min-height: 100px; resize: vertical; }
-    .row { display: flex; gap: 0.75rem; margin-top: 0.9rem; flex-wrap: wrap; }
-    button {
-      border: 0; border-radius: 999px; padding: 0.65rem 1.15rem;
-      background: var(--accent); color: white; font-weight: 600; cursor: pointer;
+    select:focus, textarea:focus, input:focus {
+      border-color: rgba(15, 118, 110, 0.45);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
     }
-    button.secondary { background: transparent; border: 1px solid var(--line); color: var(--text); }
-    button:disabled { opacity: 0.55; cursor: wait; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-    @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
-    .status { margin-top: 0.75rem; font-size: 0.9rem; color: var(--muted); }
+    textarea { min-height: 110px; resize: vertical; }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+    .status {
+      margin-top: 0.85rem;
+      font-size: 0.9rem;
+      color: var(--ink-soft);
+      min-height: 1.3em;
+    }
     .status.ok { color: var(--ok); }
     .status.err { color: var(--err); }
+
     .result-block {
       border-top: 1px solid var(--line);
       margin-top: 1rem;
       padding-top: 1rem;
     }
-    .result-block h3 { margin: 0 0 0.5rem; font-size: 1rem; }
+    .result-block h3 {
+      margin: 0 0 0.45rem;
+      font-size: 1rem;
+      letter-spacing: -0.02em;
+    }
     .scene {
       border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 0.75rem;
+      border-radius: 12px;
+      padding: 0.8rem;
       margin: 0.5rem 0;
-      background: #0c1118;
+      background: rgba(255, 252, 248, 0.7);
     }
-    .meta { color: var(--muted); font-size: 0.85rem; margin-bottom: 0.35rem; }
+    .meta {
+      color: var(--ink-soft);
+      font-size: 0.85rem;
+      margin-bottom: 0.35rem;
+    }
     .caption-box, .script-box {
       white-space: pre-wrap;
-      line-height: 1.55;
-      background: #0c1118;
-      border-radius: 10px;
-      padding: 0.85rem;
+      line-height: 1.6;
+      background: rgba(255, 252, 248, 0.85);
+      border-radius: 12px;
+      padding: 0.9rem;
       border: 1px solid var(--line);
     }
     .history-item {
       display: flex;
       justify-content: space-between;
       gap: 0.75rem;
-      padding: 0.65rem 0;
+      padding: 0.8rem 0;
       border-bottom: 1px solid var(--line);
       cursor: pointer;
+      transition: color 0.15s ease;
     }
-    .history-item:hover { color: var(--accent); }
+    .history-item:hover { color: var(--accent-deep); }
     .tag {
       display: inline-block;
       font-size: 0.75rem;
       border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 0.15rem 0.55rem;
-      color: var(--muted);
+      border-radius: 8px;
+      padding: 0.2rem 0.55rem;
+      color: var(--ink-soft);
+      background: rgba(255,252,248,0.7);
     }
-    details { margin-top: 0.75rem; }
-    summary { cursor: pointer; color: var(--muted); }
+    details { margin-top: 0.85rem; }
+    summary { cursor: pointer; color: var(--ink-soft); font-size: 0.9rem; }
     pre {
       white-space: pre-wrap;
       font-size: 0.78rem;
-      color: var(--muted);
+      color: var(--ink-soft);
       overflow: auto;
       max-height: 240px;
+    }
+
+    .footer {
+      padding: 1rem 0 2.5rem;
+      color: var(--ink-soft);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--line);
+      margin-top: 1rem;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes float-in {
+      from { opacity: 0; transform: translateY(28px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @media (max-width: 860px) {
+      .hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        padding-top: 2rem;
+        gap: 2rem;
+      }
+      .hero-visual { order: -1; }
+      .phone { width: min(240px, 68vw); }
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
     }
   </style>
 </head>
 <body>
-  <main>
-    <header>
-      <div>
-        <h1>SNSAgent</h1>
-        <p class="sub">인스타 릴스 · 유튜브 쇼츠 · 틱톡 · 페이스북 — 한국어 대본/캡션</p>
-      </div>
+  <div class="wrap">
+    <nav class="nav" aria-label="상단">
+      <a class="nav-brand" href="#">SNSAgent</a>
       <div id="quotaBadge" class="quota">한도 확인 중…</div>
-    </header>
+    </nav>
 
-    <section class="card">
-      <div class="grid">
-        <div>
-          <label for="platform">플랫폼</label>
-          <select id="platform">
-            <option value="instagram_reels">인스타그램 릴스</option>
-            <option value="youtube_shorts">유튜브 쇼츠</option>
-            <option value="tiktok">틱톡</option>
-            <option value="facebook">페이스북</option>
-            <option value="all">4개 플랫폼 한 번에</option>
-          </select>
-        </div>
-        <div>
-          <label for="contentType">생성 유형</label>
-          <select id="contentType">
-            <option value="bundle">대본 + 캡션</option>
-            <option value="script">대본만</option>
-            <option value="caption">캡션만</option>
-          </select>
+    <section class="hero" aria-label="메인 히어로">
+      <div class="hero-copy">
+        <p class="brand">SNSAgent</p>
+        <h1 class="headline">숏폼, 한국어로<br />바로 뽑아 드려요.</h1>
+        <p class="lede">
+          인스타 릴스 · 유튜브 쇼츠 · 틱톡 · 페이스북용 대본과 캡션을
+          20–30대 호흡에 맞게 깔끔하게 만들어 줍니다.
+        </p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="#studio">콘텐츠 만들기</a>
+          <a class="btn btn-secondary" href="#history-section">최근 이력 보기</a>
         </div>
       </div>
 
-      <div class="grid">
-        <div>
-          <label for="tone">톤앤매너</label>
-          <input id="tone" value="친근하고 신뢰감 있는" />
+      <div class="hero-visual" aria-hidden="true">
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="phone-hook">3초만 더 보면<br />홈카페 성공함</div>
+            <div class="phone-cap">원두만 바꿔도 맛이 달라져요. 오늘  शाम 5분만 투자해보세요.</div>
+            <div class="phone-tags">#홈카페 #숏폼팁 #릴스대본</div>
+          </div>
         </div>
+      </div>
+    </section>
+
+    <section class="section" id="studio">
+      <div class="section-head">
         <div>
-          <label for="brand">브랜드/제품 (선택)</label>
-          <input id="brand" placeholder="예: 원두브랜드 A" />
+          <h2>스튜디오</h2>
+          <p>플랫폼과 주제를 고르면 한국어 대본·캡션을 생성합니다.</p>
         </div>
       </div>
 
-      <label for="prompt">주제 / 메시지</label>
-      <textarea id="prompt" placeholder="예: 원두커피 홈카페 입문 팁을 짧게 소개하는 숏폼"></textarea>
+      <div class="panel">
+        <div class="grid">
+          <div>
+            <label for="platform">플랫폼</label>
+            <select id="platform">
+              <option value="instagram_reels">인스타그램 릴스</option>
+              <option value="youtube_shorts">유튜브 쇼츠</option>
+              <option value="tiktok">틱톡</option>
+              <option value="facebook">페이스북</option>
+              <option value="all">4개 플랫폼 한 번에</option>
+            </select>
+          </div>
+          <div>
+            <label for="contentType">생성 유형</label>
+            <select id="contentType">
+              <option value="bundle">대본 + 캡션</option>
+              <option value="script">대본만</option>
+              <option value="caption">캡션만</option>
+            </select>
+          </div>
+        </div>
 
-      <div class="row">
-        <button id="generate">한국어 콘텐츠 생성</button>
-        <button class="secondary" id="refreshHistory">이력 새로고침</button>
+        <div class="grid">
+          <div>
+            <label for="tone">톤앤매너</label>
+            <input id="tone" value="친근하고 신뢰감 있는" />
+          </div>
+          <div>
+            <label for="brand">브랜드/제품 (선택)</label>
+            <input id="brand" placeholder="예: 원두브랜드 A" />
+          </div>
+        </div>
+
+        <label for="prompt">주제 / 메시지</label>
+        <textarea id="prompt" placeholder="예: 원두커피 홈카페 입문 팁을 짧게 소개하는 숏폼"></textarea>
+
+        <div class="actions">
+          <button class="btn btn-primary" id="generate" type="button">한국어 콘텐츠 생성</button>
+          <button class="btn btn-secondary" id="refreshHistory" type="button">이력 새로고침</button>
+        </div>
+        <div id="status" class="status"></div>
       </div>
-      <div id="status" class="status"></div>
+
+      <div class="panel" id="resultCard" hidden>
+        <h2 style="margin:0 0 0.4rem;font-family:var(--font-display);font-size:1.35rem;letter-spacing:-0.03em;">생성 결과</h2>
+        <div id="resultMeta" class="meta"></div>
+        <div id="resultView"></div>
+        <details>
+          <summary>원본 JSON</summary>
+          <pre id="resultJson"></pre>
+        </details>
+      </div>
     </section>
 
-    <section class="card" id="resultCard" hidden>
-      <h2 style="margin:0 0 0.5rem;font-size:1.1rem;">생성 결과</h2>
-      <div id="resultMeta" class="meta"></div>
-      <div id="resultView"></div>
-      <details>
-        <summary>원본 JSON</summary>
-        <pre id="resultJson"></pre>
-      </details>
+    <section class="section" id="history-section" style="padding-top:0;">
+      <div class="section-head">
+        <div>
+          <h2>최근 이력</h2>
+          <p>이전에 만든 콘텐츠를 다시 열어볼 수 있습니다.</p>
+        </div>
+      </div>
+      <div class="panel">
+        <div id="historyList"></div>
+      </div>
     </section>
 
-    <section class="card">
-      <h2 style="margin:0 0 0.5rem;font-size:1.1rem;">최근 생성 이력</h2>
-      <div id="history"></div>
-    </section>
-  </main>
+    <footer class="footer">
+      SNSAgent — 숏폼 콘텐츠를 위한 한국어 에이전트
+    </footer>
+  </div>
 
   <script>
+    // Fix typo in headline if needed - rendered in HTML
     const userId = localStorage.getItem("snsagent_user_id") || (() => {
       const id = "user_" + Math.random().toString(36).slice(2, 10);
       localStorage.setItem("snsagent_user_id", id);
@@ -201,7 +506,7 @@
     const resultView = document.getElementById("resultView");
     const resultMeta = document.getElementById("resultMeta");
     const resultJson = document.getElementById("resultJson");
-    const historyEl = document.getElementById("history");
+    const historyEl = document.getElementById("historyList");
 
     const platformLabel = {
       instagram_reels: "인스타 릴스",
@@ -275,11 +580,9 @@
       }
       if (contentType === "script") return renderScript(result, platformLabel[platform] || platform);
       if (contentType === "caption") return renderCaption(result, platformLabel[platform] || platform);
-      // bundle single platform-shaped?
       if (result.script || result.caption) {
         return renderScript(result.script, platformLabel[platform]) + renderCaption(result.caption, platformLabel[platform]);
       }
-      // single platform object that is already script or caption schema
       if (result.full_script || result.scenes) return renderScript(result, platformLabel[platform]);
       if (result.caption || result.description) return renderCaption(result, platformLabel[platform]);
       return `<pre>${esc(JSON.stringify(result, null, 2))}</pre>`;
@@ -290,6 +593,7 @@
       resultMeta.textContent = `${platformLabel[payload.platform] || payload.platform} · ${payload.content_type} · id ${payload.generation_id || "-"}`;
       resultView.innerHTML = renderResult(payload.platform, payload.content_type, payload.result);
       resultJson.textContent = JSON.stringify(payload.result, null, 2);
+      resultCard.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
     async function loadQuota() {
@@ -298,9 +602,9 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "quota failed");
         const q = data.quota;
-        quotaBadge.textContent = `${q.plan_code.toUpperCase()} · ${q.used}/${q.limit}회 (${q.period})`;
+        quotaBadge.textContent = `${q.plan_code.toUpperCase()} · ${q.used}/${q.limit}회`;
       } catch {
-        quotaBadge.textContent = "한도 조회 실패 (마이그레이션 확인)";
+        quotaBadge.textContent = "한도 조회 대기";
       }
     }
 
@@ -312,7 +616,7 @@
         if (!res.ok) throw new Error(data.error || "history failed");
         const items = data.generations || [];
         if (!items.length) {
-          historyEl.innerHTML = '<div class="meta">아직 생성 이력이 없습니다.</div>';
+          historyEl.innerHTML = '<div class="meta">아직 생성 이력이 없습니다. 첫 숏폼을 만들어 보세요.</div>';
           return;
         }
         historyEl.innerHTML = items.map((g) => `
