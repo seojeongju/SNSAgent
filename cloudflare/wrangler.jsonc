@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "snsagent",
+  // Pages: 정적 산출물 디렉터리
+  "pages_build_output_dir": "./public",
+  "compatibility_date": "2026-08-04",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "snsagent-db",
+      // wrangler d1 create snsagent-db 후 ID 교체
+      "database_id": "REPLACE_AFTER_wrangler_d1_create",
+      // pages local dev 에 필요
+      "preview_database_id": "DB",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "ASSETS",
+      "bucket_name": "snsagent-assets",
+      "preview_bucket_name": "snsagent-assets"
+    }
+  ]
+  // Dashboard > Settings > Bindings / Variables 에서도 동일하게 설정 가능
+  // Secrets: OPENAI_API_KEY, TIKHUB_API_KEY, ...
+}

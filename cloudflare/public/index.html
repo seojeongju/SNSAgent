@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SNSAgent</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a2332;
+      --text: #e7ecf3;
+      --muted: #8b9bb4;
+      --accent: #3d8bfd;
+      --line: #2a3648;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #1e3a5f 0%, transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, #243b55 0%, transparent 50%),
+        var(--bg);
+      color: var(--text);
+    }
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+    h1 {
+      font-size: 2rem;
+      letter-spacing: -0.03em;
+      margin: 0 0 0.35rem;
+    }
+    .sub { color: var(--muted); margin-bottom: 1.75rem; }
+    .card {
+      background: color-mix(in srgb, var(--panel) 88%, transparent);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 1rem;
+      backdrop-filter: blur(8px);
+    }
+    textarea {
+      width: 100%;
+      min-height: 110px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #0c1118;
+      color: var(--text);
+      padding: 0.85rem;
+      font: inherit;
+    }
+    .row {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+      flex-wrap: wrap;
+    }
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 0.65rem 1.15rem;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button.secondary {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--text);
+    }
+    #log {
+      margin-top: 1rem;
+      white-space: pre-wrap;
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      max-height: 280px;
+      overflow: auto;
+    }
+    .ok { color: #7ddea2; }
+    .err { color: #ff8e8e; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>SNSAgent</h1>
+    <p class="sub">Cloudflare Pages · D1 · R2 게이트웨이 미리보기</p>
+
+    <section class="card">
+      <textarea id="prompt" placeholder="예: 커피 원두 소개 릴스 한국어 대본과 캡션 만들어줘"></textarea>
+      <div class="row">
+        <button id="send">메시지 저장 (D1)</button>
+        <button class="secondary" id="health">헬스체크</button>
+        <button class="secondary" id="history">이력 조회</button>
+      </div>
+      <div id="log"></div>
+    </section>
+  </main>
+
+  <script>
+    const userId = "user_demo";
+    const logEl = document.getElementById("log");
+
+    function log(msg, cls = "") {
+      const line = document.createElement("div");
+      if (cls) line.className = cls;
+      line.textContent = msg;
+      logEl.prepend(line);
+    }
+
+    document.getElementById("health").onclick = async () => {
+      try {
+        const res = await fetch("/api/health");
+        const data = await res.json();
+        log(JSON.stringify(data, null, 2), "ok");
+      } catch (e) {
+        log(String(e), "err");
+      }
+    };
+
+    document.getElementById("history").onclick = async () => {
+      try {
+        const res = await fetch(`/api/chat?user_id=${encodeURIComponent(userId)}`);
+        const data = await res.json();
+        log(JSON.stringify(data, null, 2), res.ok ? "ok" : "err");
+      } catch (e) {
+        log(String(e), "err");
+      }
+    };
+
+    document.getElementById("send").onclick = async () => {
+      const content = document.getElementById("prompt").value.trim();
+      if (!content) return log("내용을 입력하세요.", "err");
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: userId, content }),
+        });
+        const data = await res.json();
+        log(JSON.stringify(data, null, 2), res.ok ? "ok" : "err");
+      } catch (e) {
+        log(String(e), "err");
+      }
+    };
+  </script>
+</body>
+</html>

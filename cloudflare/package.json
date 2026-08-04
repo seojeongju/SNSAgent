@@ -1,0 +1,17 @@
+{
+  "name": "snsagent-pages",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler pages dev ./public --d1=DB --r2=ASSETS --compatibility-date=2026-08-04",
+    "deploy": "wrangler pages deploy ./public --project-name=snsagent",
+    "db:create": "wrangler d1 create snsagent-db",
+    "db:migrate:local": "wrangler d1 migrations apply snsagent-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply snsagent-db --remote",
+    "r2:create": "wrangler r2 bucket create snsagent-assets"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250801.0",
+    "typescript": "^5.8.3",
+    "wrangler": "^4.28.0"
+  }
+}

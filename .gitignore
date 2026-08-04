@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Logs & local outputs
+logs/
+*.log
+*.csv
+output_*.json
+
+# Agent runtime artifacts
+agents/**/logs/
+
+# Node / Cloudflare
+node_modules/
+.wrangler/
+.dev.vars
+cloudflare/.wrangler/
+
+# Keep required JSON in repo (do not use blanket *.json)
+# agents_registry.json, package.json, tsconfig.json must be tracked
