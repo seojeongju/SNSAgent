@@ -12,6 +12,8 @@
       --muted: #8b9bb4;
       --accent: #3d8bfd;
       --line: #2a3648;
+      --ok: #7ddea2;
+      --err: #ff8e8e;
     }
     * { box-sizing: border-box; }
     body {
@@ -24,18 +26,28 @@
         var(--bg);
       color: var(--text);
     }
-    main { max-width: 760px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+    main { max-width: 880px; margin: 0 auto; padding: 2.25rem 1.25rem 4rem; }
+    header { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; flex-wrap: wrap; }
     h1 { font-size: 2rem; letter-spacing: -0.03em; margin: 0 0 0.35rem; }
-    .sub { color: var(--muted); margin-bottom: 1.5rem; }
+    .sub { color: var(--muted); margin: 0 0 1.25rem; }
+    .quota {
+      font-size: 0.85rem;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0.4rem 0.85rem;
+      white-space: nowrap;
+    }
     .card {
       background: color-mix(in srgb, var(--panel) 88%, transparent);
       border: 1px solid var(--line);
       border-radius: 14px;
       padding: 1rem;
       backdrop-filter: blur(8px);
+      margin-bottom: 1rem;
     }
     label { display: block; font-size: 0.85rem; color: var(--muted); margin: 0.65rem 0 0.35rem; }
-    select, textarea {
+    select, textarea, input {
       width: 100%;
       border: 1px solid var(--line);
       border-radius: 10px;
@@ -44,7 +56,7 @@
       padding: 0.75rem;
       font: inherit;
     }
-    textarea { min-height: 110px; resize: vertical; }
+    textarea { min-height: 100px; resize: vertical; }
     .row { display: flex; gap: 0.75rem; margin-top: 0.9rem; flex-wrap: wrap; }
     button {
       border: 0; border-radius: 999px; padding: 0.65rem 1.15rem;
@@ -52,22 +64,70 @@
     }
     button.secondary { background: transparent; border: 1px solid var(--line); color: var(--text); }
     button:disabled { opacity: 0.55; cursor: wait; }
-    #log {
-      margin-top: 1rem; white-space: pre-wrap;
-      font-family: ui-monospace, Consolas, monospace;
-      font-size: 0.82rem; color: var(--muted);
-      max-height: 360px; overflow: auto;
-    }
-    .ok { color: #7ddea2; }
-    .err { color: #ff8e8e; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
     @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+    .status { margin-top: 0.75rem; font-size: 0.9rem; color: var(--muted); }
+    .status.ok { color: var(--ok); }
+    .status.err { color: var(--err); }
+    .result-block {
+      border-top: 1px solid var(--line);
+      margin-top: 1rem;
+      padding-top: 1rem;
+    }
+    .result-block h3 { margin: 0 0 0.5rem; font-size: 1rem; }
+    .scene {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0.75rem;
+      margin: 0.5rem 0;
+      background: #0c1118;
+    }
+    .meta { color: var(--muted); font-size: 0.85rem; margin-bottom: 0.35rem; }
+    .caption-box, .script-box {
+      white-space: pre-wrap;
+      line-height: 1.55;
+      background: #0c1118;
+      border-radius: 10px;
+      padding: 0.85rem;
+      border: 1px solid var(--line);
+    }
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.65rem 0;
+      border-bottom: 1px solid var(--line);
+      cursor: pointer;
+    }
+    .history-item:hover { color: var(--accent); }
+    .tag {
+      display: inline-block;
+      font-size: 0.75rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0.15rem 0.55rem;
+      color: var(--muted);
+    }
+    details { margin-top: 0.75rem; }
+    summary { cursor: pointer; color: var(--muted); }
+    pre {
+      white-space: pre-wrap;
+      font-size: 0.78rem;
+      color: var(--muted);
+      overflow: auto;
+      max-height: 240px;
+    }
   </style>
 </head>
 <body>
   <main>
-    <h1>SNSAgent</h1>
-    <p class="sub">인스타 릴스 · 유튜브 쇼츠 · 틱톡 · 페이스북 — 한국어 대본/캡션 생성</p>
+    <header>
+      <div>
+        <h1>SNSAgent</h1>
+        <p class="sub">인스타 릴스 · 유튜브 쇼츠 · 틱톡 · 페이스북 — 한국어 대본/캡션</p>
+      </div>
+      <div id="quotaBadge" class="quota">한도 확인 중…</div>
+    </header>
 
     <section class="card">
       <div class="grid">
@@ -91,47 +151,213 @@
         </div>
       </div>
 
+      <div class="grid">
+        <div>
+          <label for="tone">톤앤매너</label>
+          <input id="tone" value="친근하고 신뢰감 있는" />
+        </div>
+        <div>
+          <label for="brand">브랜드/제품 (선택)</label>
+          <input id="brand" placeholder="예: 원두브랜드 A" />
+        </div>
+      </div>
+
       <label for="prompt">주제 / 메시지</label>
       <textarea id="prompt" placeholder="예: 원두커피 홈카페 입문 팁을 짧게 소개하는 숏폼"></textarea>
 
       <div class="row">
         <button id="generate">한국어 콘텐츠 생성</button>
-        <button class="secondary" id="health">헬스체크</button>
+        <button class="secondary" id="refreshHistory">이력 새로고침</button>
       </div>
-      <div id="log"></div>
+      <div id="status" class="status"></div>
+    </section>
+
+    <section class="card" id="resultCard" hidden>
+      <h2 style="margin:0 0 0.5rem;font-size:1.1rem;">생성 결과</h2>
+      <div id="resultMeta" class="meta"></div>
+      <div id="resultView"></div>
+      <details>
+        <summary>원본 JSON</summary>
+        <pre id="resultJson"></pre>
+      </details>
+    </section>
+
+    <section class="card">
+      <h2 style="margin:0 0 0.5rem;font-size:1.1rem;">최근 생성 이력</h2>
+      <div id="history"></div>
     </section>
   </main>
 
   <script>
-    const userId = "user_demo";
-    const logEl = document.getElementById("log");
+    const userId = localStorage.getItem("snsagent_user_id") || (() => {
+      const id = "user_" + Math.random().toString(36).slice(2, 10);
+      localStorage.setItem("snsagent_user_id", id);
+      return id;
+    })();
 
-    function log(msg, cls = "") {
-      const line = document.createElement("div");
-      if (cls) line.className = cls;
-      line.textContent = typeof msg === "string" ? msg : JSON.stringify(msg, null, 2);
-      logEl.prepend(line);
+    const statusEl = document.getElementById("status");
+    const quotaBadge = document.getElementById("quotaBadge");
+    const resultCard = document.getElementById("resultCard");
+    const resultView = document.getElementById("resultView");
+    const resultMeta = document.getElementById("resultMeta");
+    const resultJson = document.getElementById("resultJson");
+    const historyEl = document.getElementById("history");
+
+    const platformLabel = {
+      instagram_reels: "인스타 릴스",
+      youtube_shorts: "유튜브 쇼츠",
+      tiktok: "틱톡",
+      facebook: "페이스북",
+      all: "전체",
+    };
+
+    function setStatus(msg, cls = "") {
+      statusEl.textContent = msg;
+      statusEl.className = "status " + cls;
     }
 
-    document.getElementById("health").onclick = async () => {
-      try {
-        const res = await fetch("/api/health");
-        log(await res.json(), res.ok ? "ok" : "err");
-      } catch (e) {
-        log(String(e), "err");
+    function esc(s) {
+      return String(s ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+    }
+
+    function renderScript(script, title) {
+      if (!script || typeof script !== "object") return "";
+      const scenes = Array.isArray(script.scenes) ? script.scenes : [];
+      const sceneHtml = scenes.map((s) => `
+        <div class="scene">
+          <div class="meta">장면 ${esc(s.scene)} · ${esc(s.duration_sec)}초</div>
+          <div><strong>화면</strong> ${esc(s.visual)}</div>
+          <div><strong>자막</strong> ${esc(s.on_screen_text)}</div>
+          <div><strong>나레이션</strong> ${esc(s.narration)}</div>
+        </div>
+      `).join("");
+      return `
+        <div class="result-block">
+          <h3>${esc(title)} · 대본</h3>
+          <div class="meta">훅: ${esc(script.hook || "")}</div>
+          ${sceneHtml}
+          <div class="script-box" style="margin-top:0.5rem">${esc(script.full_script || "")}</div>
+          <div class="meta" style="margin-top:0.5rem">CTA: ${esc(script.cta || "")}</div>
+        </div>
+      `;
+    }
+
+    function renderCaption(caption, title) {
+      if (!caption || typeof caption !== "object") return "";
+      const text = caption.caption || caption.description || "";
+      const tags = (caption.hashtags || []).join(" ");
+      const titles = (caption.titles || caption.title_ideas || []).join(" / ");
+      return `
+        <div class="result-block">
+          <h3>${esc(title)} · 캡션</h3>
+          ${titles ? `<div class="meta">제목: ${esc(titles)}</div>` : ""}
+          <div class="caption-box">${esc(text)}</div>
+          <div class="meta" style="margin-top:0.5rem">${esc(tags)}</div>
+        </div>
+      `;
+    }
+
+    function renderResult(platform, contentType, result) {
+      if (!result) return "<p class='meta'>결과 없음</p>";
+      if (platform === "all" || (result.instagram_reels && result.youtube_shorts)) {
+        const blocks = [];
+        for (const [key, label] of Object.entries(platformLabel)) {
+          if (key === "all") continue;
+          const pack = result[key];
+          if (!pack) continue;
+          blocks.push(renderScript(pack.script, label));
+          blocks.push(renderCaption(pack.caption, label));
+        }
+        return blocks.join("") || `<pre>${esc(JSON.stringify(result, null, 2))}</pre>`;
       }
-    };
+      if (contentType === "script") return renderScript(result, platformLabel[platform] || platform);
+      if (contentType === "caption") return renderCaption(result, platformLabel[platform] || platform);
+      // bundle single platform-shaped?
+      if (result.script || result.caption) {
+        return renderScript(result.script, platformLabel[platform]) + renderCaption(result.caption, platformLabel[platform]);
+      }
+      // single platform object that is already script or caption schema
+      if (result.full_script || result.scenes) return renderScript(result, platformLabel[platform]);
+      if (result.caption || result.description) return renderCaption(result, platformLabel[platform]);
+      return `<pre>${esc(JSON.stringify(result, null, 2))}</pre>`;
+    }
+
+    function showResult(payload) {
+      resultCard.hidden = false;
+      resultMeta.textContent = `${platformLabel[payload.platform] || payload.platform} · ${payload.content_type} · id ${payload.generation_id || "-"}`;
+      resultView.innerHTML = renderResult(payload.platform, payload.content_type, payload.result);
+      resultJson.textContent = JSON.stringify(payload.result, null, 2);
+    }
+
+    async function loadQuota() {
+      try {
+        const res = await fetch(`/api/me?user_id=${encodeURIComponent(userId)}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "quota failed");
+        const q = data.quota;
+        quotaBadge.textContent = `${q.plan_code.toUpperCase()} · ${q.used}/${q.limit}회 (${q.period})`;
+      } catch {
+        quotaBadge.textContent = "한도 조회 실패 (마이그레이션 확인)";
+      }
+    }
+
+    async function loadHistory() {
+      historyEl.innerHTML = '<div class="meta">불러오는 중…</div>';
+      try {
+        const res = await fetch(`/api/generations?user_id=${encodeURIComponent(userId)}&limit=15`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "history failed");
+        const items = data.generations || [];
+        if (!items.length) {
+          historyEl.innerHTML = '<div class="meta">아직 생성 이력이 없습니다.</div>';
+          return;
+        }
+        historyEl.innerHTML = items.map((g) => `
+          <div class="history-item" data-id="${esc(g.id)}">
+            <div>
+              <div>${esc(g.topic)}</div>
+              <div class="meta">${esc(g.created_at)}</div>
+            </div>
+            <div><span class="tag">${esc(platformLabel[g.platform] || g.platform)}</span></div>
+          </div>
+        `).join("");
+
+        historyEl.querySelectorAll(".history-item").forEach((el) => {
+          el.onclick = async () => {
+            const id = el.getAttribute("data-id");
+            setStatus("이력 불러오는 중…");
+            const res = await fetch(`/api/generation/${id}?user_id=${encodeURIComponent(userId)}`);
+            const data = await res.json();
+            if (!res.ok) return setStatus(data.error || "조회 실패", "err");
+            showResult({
+              platform: data.platform,
+              content_type: data.content_type,
+              generation_id: data.id,
+              result: data.result,
+            });
+            setStatus("이력을 불러왔습니다.", "ok");
+          };
+        });
+      } catch (e) {
+        historyEl.innerHTML = `<div class="status err">${esc(e.message || e)}</div>`;
+      }
+    }
 
     document.getElementById("generate").onclick = async () => {
       const btn = document.getElementById("generate");
       const topic = document.getElementById("prompt").value.trim();
       const platform = document.getElementById("platform").value;
       let contentType = document.getElementById("contentType").value;
+      const tone = document.getElementById("tone").value.trim();
+      const brand = document.getElementById("brand").value.trim();
       if (platform === "all") contentType = "bundle";
-      if (!topic) return log("주제를 입력하세요.", "err");
+      if (!topic) return setStatus("주제를 입력하세요.", "err");
 
       btn.disabled = true;
-      log("생성 중...", "ok");
+      setStatus("생성 중… 잠시만 기다려 주세요.");
       try {
         const res = await fetch("/api/generate", {
           method: "POST",
@@ -141,16 +367,33 @@
             platform,
             content_type: contentType,
             topic,
+            tone,
+            brand_or_product: brand || undefined,
           }),
         });
         const data = await res.json();
-        log(data, res.ok ? "ok" : "err");
+        if (!res.ok) {
+          if (data.error === "monthly_quota_exceeded") {
+            setStatus(`한도 초과: ${data.quota.used}/${data.quota.limit}회. Pro 업그레이드가 필요합니다.`, "err");
+          } else {
+            setStatus(data.message || data.error || "생성 실패", "err");
+          }
+          return;
+        }
+        showResult(data);
+        setStatus("생성 완료", "ok");
+        await loadQuota();
+        await loadHistory();
       } catch (e) {
-        log(String(e), "err");
+        setStatus(String(e), "err");
       } finally {
         btn.disabled = false;
       }
     };
+
+    document.getElementById("refreshHistory").onclick = loadHistory;
+    loadQuota();
+    loadHistory();
   </script>
 </body>
 </html>
