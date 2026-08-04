@@ -152,12 +152,13 @@ flowchart LR
 
 - [x] D1 `platform_accounts` / `publish_jobs` (migration 0003)
 - [x] OAuth 시작·콜백 (`/api/oauth/*`) + 토큰 직접 등록 (`/api/accounts`)
-- [x] `POST /api/publish` — IG/FB Graph 자동 게시, YT/TikTok 수동 패키지
+- [x] `POST /api/publish` — IG/FB Graph 자동 게시, **YT/TikTok 자동 업로드**
 - [x] UI 게시 연동 패널 (업로드·계정·작업 이력)
+- [x] YouTube Shorts resumable upload + Google 토큰 갱신
+- [x] TikTok Content Posting (PULL_FROM_URL / FILE_UPLOAD / Inbox 폴백)
 - [ ] 토큰 암호화 at-rest
 - [ ] 게시 예약
 - [ ] 게시 실패 재시도·로그
-- [ ] YouTube/TikTok 자동 업로드 어댑터 완성
 - [ ] Business 플랜에만 다중 계정
 
 **완료 기준:** 최소 1개 플랫폼에서 Pro 사용자가 생성된 캡션으로 게시 성공

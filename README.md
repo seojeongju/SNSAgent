@@ -58,7 +58,8 @@ Git 연동 Pages 설정:
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` / `STRIPE_PRICE_PRO` | Pro 구독 |
 
 연동 상태 확인: `GET /api/diagnostics`  
-Meta 절차: [`docs/Meta_연동_가이드.md`](docs/Meta_연동_가이드.md)
+- Meta: [`docs/Meta_연동_가이드.md`](docs/Meta_연동_가이드.md)  
+- YouTube · TikTok: [`docs/YouTube_TikTok_게시_가이드.md`](docs/YouTube_TikTok_게시_가이드.md)
 
 Stripe Webhook 엔드포인트: `https://snsagent.pages.dev/api/billing/webhook`  
 이벤트: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`

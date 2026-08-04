@@ -22,6 +22,10 @@ export interface Env {
   TIKTOK_CLIENT_KEY?: string;
   TIKTOK_CLIENT_SECRET?: string;
   TIKTOK_REDIRECT_URI?: string;
+  /** "0" to disable PULL_FROM_URL and force FILE_UPLOAD */
+  TIKTOK_USE_PULL_URL?: string;
+  /** PUBLIC_TO_EVERYONE | SELF_ONLY | ... (creator options 내) */
+  TIKTOK_PRIVACY_LEVEL?: string;
   APP_BASE_URL?: string;
   /** Stripe */
   STRIPE_SECRET_KEY?: string;

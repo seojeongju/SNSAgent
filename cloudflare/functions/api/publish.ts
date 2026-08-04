@@ -143,6 +143,25 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       : context.env,
   });
 
+  if (result.token_update && account) {
+    await context.env.DB.prepare(
+      `UPDATE platform_accounts
+       SET access_token = ?,
+           refresh_token = COALESCE(?, refresh_token),
+           token_expires_at = COALESCE(?, token_expires_at),
+           status = 'connected',
+           updated_at = datetime('now')
+       WHERE id = ?`,
+    )
+      .bind(
+        result.token_update.access_token,
+        result.token_update.refresh_token || null,
+        result.token_update.token_expires_at || null,
+        account.id,
+      )
+      .run();
+  }
+
   await context.env.DB.prepare(
     `UPDATE publish_jobs
      SET status = ?,
@@ -175,7 +194,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     external_url: result.external_url || null,
     error_message: result.error_message || null,
     manual_package: result.manual_package || null,
-    account_connected: Boolean(account?.access_token) ||
+    account_connected:
+      Boolean(account?.access_token || account?.refresh_token) ||
       (platform === "instagram_reels" &&
         Boolean(context.env.META_ACCESS_TOKEN && context.env.META_IG_USER_ID)) ||
       (platform === "facebook" &&
