@@ -24,17 +24,9 @@
         var(--bg);
       color: var(--text);
     }
-    main {
-      max-width: 720px;
-      margin: 0 auto;
-      padding: 2.5rem 1.25rem 4rem;
-    }
-    h1 {
-      font-size: 2rem;
-      letter-spacing: -0.03em;
-      margin: 0 0 0.35rem;
-    }
-    .sub { color: var(--muted); margin-bottom: 1.75rem; }
+    main { max-width: 760px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+    h1 { font-size: 2rem; letter-spacing: -0.03em; margin: 0 0 0.35rem; }
+    .sub { color: var(--muted); margin-bottom: 1.5rem; }
     .card {
       background: color-mix(in srgb, var(--panel) 88%, transparent);
       border: 1px solid var(--line);
@@ -42,61 +34,69 @@
       padding: 1rem;
       backdrop-filter: blur(8px);
     }
-    textarea {
+    label { display: block; font-size: 0.85rem; color: var(--muted); margin: 0.65rem 0 0.35rem; }
+    select, textarea {
       width: 100%;
-      min-height: 110px;
-      resize: vertical;
       border: 1px solid var(--line);
       border-radius: 10px;
       background: #0c1118;
       color: var(--text);
-      padding: 0.85rem;
+      padding: 0.75rem;
       font: inherit;
     }
-    .row {
-      display: flex;
-      gap: 0.75rem;
-      margin-top: 0.75rem;
-      flex-wrap: wrap;
-    }
+    textarea { min-height: 110px; resize: vertical; }
+    .row { display: flex; gap: 0.75rem; margin-top: 0.9rem; flex-wrap: wrap; }
     button {
-      border: 0;
-      border-radius: 999px;
-      padding: 0.65rem 1.15rem;
-      background: var(--accent);
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
+      border: 0; border-radius: 999px; padding: 0.65rem 1.15rem;
+      background: var(--accent); color: white; font-weight: 600; cursor: pointer;
     }
-    button.secondary {
-      background: transparent;
-      border: 1px solid var(--line);
-      color: var(--text);
-    }
+    button.secondary { background: transparent; border: 1px solid var(--line); color: var(--text); }
+    button:disabled { opacity: 0.55; cursor: wait; }
     #log {
-      margin-top: 1rem;
-      white-space: pre-wrap;
+      margin-top: 1rem; white-space: pre-wrap;
       font-family: ui-monospace, Consolas, monospace;
-      font-size: 0.85rem;
-      color: var(--muted);
-      max-height: 280px;
-      overflow: auto;
+      font-size: 0.82rem; color: var(--muted);
+      max-height: 360px; overflow: auto;
     }
     .ok { color: #7ddea2; }
     .err { color: #ff8e8e; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
   <main>
     <h1>SNSAgent</h1>
-    <p class="sub">Cloudflare Pages · D1 · R2 게이트웨이 미리보기</p>
+    <p class="sub">인스타 릴스 · 유튜브 쇼츠 · 틱톡 · 페이스북 — 한국어 대본/캡션 생성</p>
 
     <section class="card">
-      <textarea id="prompt" placeholder="예: 커피 원두 소개 릴스 한국어 대본과 캡션 만들어줘"></textarea>
+      <div class="grid">
+        <div>
+          <label for="platform">플랫폼</label>
+          <select id="platform">
+            <option value="instagram_reels">인스타그램 릴스</option>
+            <option value="youtube_shorts">유튜브 쇼츠</option>
+            <option value="tiktok">틱톡</option>
+            <option value="facebook">페이스북</option>
+            <option value="all">4개 플랫폼 한 번에</option>
+          </select>
+        </div>
+        <div>
+          <label for="contentType">생성 유형</label>
+          <select id="contentType">
+            <option value="bundle">대본 + 캡션</option>
+            <option value="script">대본만</option>
+            <option value="caption">캡션만</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="prompt">주제 / 메시지</label>
+      <textarea id="prompt" placeholder="예: 원두커피 홈카페 입문 팁을 짧게 소개하는 숏폼"></textarea>
+
       <div class="row">
-        <button id="send">메시지 저장 (D1)</button>
+        <button id="generate">한국어 콘텐츠 생성</button>
         <button class="secondary" id="health">헬스체크</button>
-        <button class="secondary" id="history">이력 조회</button>
       </div>
       <div id="log"></div>
     </section>
@@ -109,43 +109,46 @@
     function log(msg, cls = "") {
       const line = document.createElement("div");
       if (cls) line.className = cls;
-      line.textContent = msg;
+      line.textContent = typeof msg === "string" ? msg : JSON.stringify(msg, null, 2);
       logEl.prepend(line);
     }
 
     document.getElementById("health").onclick = async () => {
       try {
         const res = await fetch("/api/health");
-        const data = await res.json();
-        log(JSON.stringify(data, null, 2), "ok");
+        log(await res.json(), res.ok ? "ok" : "err");
       } catch (e) {
         log(String(e), "err");
       }
     };
 
-    document.getElementById("history").onclick = async () => {
-      try {
-        const res = await fetch(`/api/chat?user_id=${encodeURIComponent(userId)}`);
-        const data = await res.json();
-        log(JSON.stringify(data, null, 2), res.ok ? "ok" : "err");
-      } catch (e) {
-        log(String(e), "err");
-      }
-    };
+    document.getElementById("generate").onclick = async () => {
+      const btn = document.getElementById("generate");
+      const topic = document.getElementById("prompt").value.trim();
+      const platform = document.getElementById("platform").value;
+      let contentType = document.getElementById("contentType").value;
+      if (platform === "all") contentType = "bundle";
+      if (!topic) return log("주제를 입력하세요.", "err");
 
-    document.getElementById("send").onclick = async () => {
-      const content = document.getElementById("prompt").value.trim();
-      if (!content) return log("내용을 입력하세요.", "err");
+      btn.disabled = true;
+      log("생성 중...", "ok");
       try {
-        const res = await fetch("/api/chat", {
+        const res = await fetch("/api/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ user_id: userId, content }),
+          body: JSON.stringify({
+            user_id: userId,
+            platform,
+            content_type: contentType,
+            topic,
+          }),
         });
         const data = await res.json();
-        log(JSON.stringify(data, null, 2), res.ok ? "ok" : "err");
+        log(data, res.ok ? "ok" : "err");
       } catch (e) {
         log(String(e), "err");
+      } finally {
+        btn.disabled = false;
       }
     };
   </script>

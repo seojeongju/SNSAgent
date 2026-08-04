@@ -1207,8 +1207,72 @@
             "type": "List[Any]",
             "description": "Cleaned TikTok data containing only the field or fields relevant to the user's request"
           }
+        },
+        {
+          "agent_id": "tiktok_analysis",
+          "function_id": "generate_tiktok_script",
+          "description": "틱톡용 한국어 숏폼 대본(장면·훅·CTA·사운드 힌트)을 생성한다",
+          "parameters": [
+            { "name": "topic", "type": "str", "description": "틱톡 주제/메시지 (한국어)", "required": true },
+            { "name": "tone", "type": "str", "description": "톤앤매너", "required": false },
+            { "name": "target_audience", "type": "str", "description": "타깃 시청자", "required": false },
+            { "name": "duration_sec", "type": "int", "description": "목표 길이(초)", "required": false },
+            { "name": "brand_or_product", "type": "str", "description": "브랜드/제품", "required": false },
+            { "name": "extra_notes", "type": "str", "description": "추가 요청", "required": false },
+            { "name": "reference_text", "type": "str", "description": "참고 텍스트", "required": false }
+          ],
+          "returns": { "type": "Dict", "description": "한국어 틱톡 대본 JSON" }
+        },
+        {
+          "agent_id": "tiktok_analysis",
+          "function_id": "generate_tiktok_caption",
+          "description": "틱톡용 한국어 캡션과 해시태그를 생성한다",
+          "parameters": [
+            { "name": "topic", "type": "str", "description": "틱톡 주제/메시지 (한국어)", "required": true },
+            { "name": "tone", "type": "str", "description": "톤앤매너", "required": false },
+            { "name": "target_audience", "type": "str", "description": "타깃 시청자", "required": false },
+            { "name": "brand_or_product", "type": "str", "description": "브랜드/제품", "required": false },
+            { "name": "extra_notes", "type": "str", "description": "추가 요청", "required": false },
+            { "name": "reference_text", "type": "str", "description": "참고 텍스트", "required": false }
+          ],
+          "returns": { "type": "Dict", "description": "한국어 틱톡 캡션 JSON" }
         }
       ]
+    },
+    "facebook": {
+      "crawlers": [],
+      "analysis": [
+        {
+          "agent_id": "facebook_analysis",
+          "function_id": "generate_facebook_script",
+          "description": "페이스북 릴스/숏폼용 한국어 대본을 생성한다",
+          "parameters": [
+            { "name": "topic", "type": "str", "description": "페이스북 주제/메시지 (한국어)", "required": true },
+            { "name": "tone", "type": "str", "description": "톤앤매너", "required": false },
+            { "name": "target_audience", "type": "str", "description": "타깃 시청자", "required": false },
+            { "name": "duration_sec", "type": "int", "description": "목표 길이(초)", "required": false },
+            { "name": "brand_or_product", "type": "str", "description": "브랜드/제품", "required": false },
+            { "name": "extra_notes", "type": "str", "description": "추가 요청", "required": false },
+            { "name": "reference_text", "type": "str", "description": "참고 텍스트", "required": false }
+          ],
+          "returns": { "type": "Dict", "description": "한국어 페이스북 대본 JSON" }
+        },
+        {
+          "agent_id": "facebook_analysis",
+          "function_id": "generate_facebook_caption",
+          "description": "페이스북용 한국어 캡션과 해시태그를 생성한다",
+          "parameters": [
+            { "name": "topic", "type": "str", "description": "페이스북 주제/메시지 (한국어)", "required": true },
+            { "name": "tone", "type": "str", "description": "톤앤매너", "required": false },
+            { "name": "target_audience", "type": "str", "description": "타깃 시청자", "required": false },
+            { "name": "brand_or_product", "type": "str", "description": "브랜드/제품", "required": false },
+            { "name": "extra_notes", "type": "str", "description": "추가 요청", "required": false },
+            { "name": "reference_text", "type": "str", "description": "참고 텍스트", "required": false }
+          ],
+          "returns": { "type": "Dict", "description": "한국어 페이스북 캡션 JSON" }
+        }
+      ],
+      "interactive": []
     },
     "instagram": {
       "crawlers": [
